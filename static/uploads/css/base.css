@@ -1,0 +1,271 @@
+ /* Layout fixo com conteúdo rolável */
+ html,
+ body {
+     height: 100%;
+     overflow: hidden;
+ }
+
+ .content-wrapper {
+     background-color: #f4f6f9;
+     overflow-y: auto;
+     height: calc(100vh - 57px);
+     /* Altura da tela menos a altura da navbar */
+ }
+
+ .dark-mode .content-wrapper {
+     background-color: #343a40;
+ }
+
+ /* Outros estilos */
+ .nav-sidebar .nav-link p {
+     color: #6c757d;
+ }
+
+ .dark-mode .nav-sidebar .nav-link p {
+     color: #ced4da;
+ }
+
+ /* Melhorar a visibilidade dos itens ativos na sidebar no modo claro */
+ .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active {
+     background-color: #e9ecef;
+     color: #212529;
+     font-weight: bold;
+ }
+
+ .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active i,
+ .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active p {
+     color: #007bff;
+ }
+
+ /* Manter o estilo original para o modo escuro */
+ .sidebar-dark-primary .nav-sidebar .nav-item .nav-link.active {
+     background-color: #007bff;
+ }
+
+ /* Estilo para os créditos do desenvolvedor */
+ .sidebar-developer-credits {
+     border-top: 1px solid rgba(0, 0, 0, 0.1);
+     padding-top: 10px;
+ }
+
+ .dark-mode .sidebar-developer-credits {
+     border-top: 1px solid rgba(255, 255, 255, 0.1);
+ }
+
+ .pending-badge {
+     animation: pulse 2s infinite;
+ }
+
+ @keyframes pulse {
+     0% {
+         opacity: 1;
+     }
+
+     50% {
+         opacity: 0.5;
+     }
+
+     100% {
+         opacity: 1;
+     }
+ }
+
+ .card-draggable .card-header {
+     cursor: move;
+ }
+
+ .card-placeholder {
+     border: 2px dashed #ccc;
+     margin-bottom: 20px;
+     height: 100px;
+     border-radius: 5px;
+ }
+
+ .profile-pic {
+     width: 35px;
+     height: 35px;
+     object-fit: cover;
+     border-radius: 50%;
+ }
+
+ .user-panel .image img {
+     width: 34px;
+     height: 34px;
+     object-fit: cover;
+ }
+
+ /* Ajustes para impressão */
+ @media print {
+     .no-print {
+         display: none !important;
+     }
+
+     .print-only {
+         display: block !important;
+     }
+
+     body {
+         background-color: white !important;
+         color: black !important;
+         overflow: visible !important;
+         height: auto !important;
+     }
+
+     .content-wrapper {
+         background-color: white !important;
+         overflow: visible !important;
+         height: auto !important;
+     }
+
+     .card {
+         box-shadow: none !important;
+         border: 1px solid #ddd !important;
+     }
+
+     .page-header {
+         border-bottom: 1px solid #ddd;
+         margin-bottom: 20px;
+         padding-bottom: 10px;
+     }
+ }
+
+ .print-only {
+     display: none;
+ }
+
+ /* Estilos para modais */
+ .modal-body p,
+ .modal-body div {
+     word-wrap: break-word;
+     word-break: break-word;
+     overflow-wrap: break-word;
+ }
+
+ .modal-content {
+     max-width: 100%;
+ }
+
+ .alert {
+     word-wrap: break-word;
+     word-break: break-word;
+     overflow-wrap: break-word;
+ }
+
+ /* Estilos para tabelas responsivas em dispositivos móveis */
+ @media (max-width: 767.98px) {
+     .table-responsive {
+         display: block;
+         width: 100%;
+         overflow-x: auto;
+         -webkit-overflow-scrolling: touch;
+     }
+
+     .table-responsive .btn-xs {
+         padding: 0.2rem 0.4rem;
+         font-size: 0.75rem;
+     }
+ }
+
+ /* Estilos para NProgress */
+ #nprogress .bar {
+     background: #007bff;
+     height: 3px;
+ }
+
+ #nprogress .peg {
+     box-shadow: 0 0 10px #007bff, 0 0 5px #007bff;
+ }
+
+ #nprogress .spinner-icon {
+     border-top-color: #007bff;
+     border-left-color: #007bff;
+ }
+
+ /* Animações de transição de página */
+ .page-transition {
+     transition: opacity 0.3s ease-in-out;
+ }
+
+ .page-transition-enter {
+     opacity: 0;
+ }
+
+ .page-transition-enter-active {
+     opacity: 1;
+ }
+
+ .page-transition-exit {
+     opacity: 1;
+ }
+
+ .page-transition-exit-active {
+     opacity: 0;
+ }
+
+ /* Estilos para a barra de rolagem */
+ /* Para navegadores baseados em WebKit (Chrome, Safari, Edge) */
+ ::-webkit-scrollbar {
+     width: 10px;
+     height: 10px;
+ }
+
+ ::-webkit-scrollbar-track {
+     background: #f1f1f1;
+     border-radius: 5px;
+ }
+
+ ::-webkit-scrollbar-thumb {
+     background: #c1c1c1;
+     border-radius: 5px;
+ }
+
+ ::-webkit-scrollbar-thumb:hover {
+     background: #a8a8a8;
+ }
+
+ /* Estilos para a barra de rolagem no modo escuro */
+ .dark-mode ::-webkit-scrollbar-track {
+     background: #2d3238;
+ }
+
+ .dark-mode ::-webkit-scrollbar-thumb {
+     background: #4b5563;
+ }
+
+ .dark-mode ::-webkit-scrollbar-thumb:hover {
+     background: #6b7280;
+ }
+
+ /* Para Firefox */
+ * {
+     scrollbar-width: thin;
+     scrollbar-color: #c1c1c1 #f1f1f1;
+ }
+
+ .dark-mode * {
+     scrollbar-color: #4b5563 #2d3238;
+ }
+
+ /* Estilos para MEI */
+ .mei-header {
+     background-color: #28a745;
+     color: white;
+     padding: 10px 15px;
+     margin-bottom: 15px;
+     border-radius: 5px;
+ }
+
+ .mei-header h4 {
+     margin: 0;
+     font-size: 1.2rem;
+ }
+
+ .mei-header p {
+     margin: 0;
+     font-size: 0.9rem;
+ }
+
+ .mei-badge {
+     background-color: #28a745;
+     color: white;
+ }
