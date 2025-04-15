@@ -1,705 +1,758 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>{% if current_user.is_mei %}{{ current_user.mei_company_name }} - MEI{% else %}Sistema Financeiro Pessoal{% endif %}</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>{% if current_user.is_mei %}{{ current_user.mei_company_name }} - MEI{% else %}Sistema Financeiro Pessoal{%
+    endif %}</title>
 
-<!-- Google Font: Source Sans Pro -->
-<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
-<!-- Font Awesome -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-<!-- AdminLTE 3 v3.2 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
-<!-- Bootstrap 4 -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
-<!-- iCheck -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/icheck-bootstrap@3.0.1/icheck-bootstrap.min.css">
-<!-- Chart.js -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
-<!-- jQuery UI -->
-<link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
-<!-- Spectrum Colorpicker -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css">
-<!-- NProgress -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
+  <!-- Google Font: Source Sans Pro -->
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+  <!-- Font Awesome -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+  <!-- AdminLTE 3 v3.2 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+  <!-- Bootstrap 4 -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/css/bootstrap.min.css">
+  <!-- iCheck -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/icheck-bootstrap@3.0.1/icheck-bootstrap.min.css">
+  <!-- Chart.js -->
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.css">
+  <!-- jQuery UI -->
+  <link rel="stylesheet" href="https://code.jquery.com/ui/1.13.2/themes/base/jquery-ui.css">
+  <!-- Spectrum Colorpicker -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.css">
+  <!-- NProgress -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.css">
 
-<style>
-/* Layout fixo com conteúdo rolável */
-html, body {
-height: 100%;
-overflow: hidden;
-}
+  <style>
+    /* Layout fixo com conteúdo rolável */
+    html,
+    body {
+      height: 100%;
+      overflow: hidden;
+    }
 
-.content-wrapper {
-background-color: #f4f6f9;
-overflow-y: auto;
-height: calc(100vh - 57px); /* Altura da tela menos a altura da navbar */
-}
+    .content-wrapper {
+      background-color: #f4f6f9;
+      overflow-y: auto;
+      height: calc(100vh - 57px);
+      /* Altura da tela menos a altura da navbar */
+    }
 
-.dark-mode .content-wrapper {
-background-color: #343a40;
-}
+    .dark-mode .content-wrapper {
+      background-color: #343a40;
+    }
 
-/* Outros estilos */
-.nav-sidebar .nav-link p {
-color: #6c757d;
-}
-.dark-mode .nav-sidebar .nav-link p {
-color: #ced4da;
-}
+    /* Outros estilos */
+    .nav-sidebar .nav-link p {
+      color: #6c757d;
+    }
 
-/* Melhorar a visibilidade dos itens ativos na sidebar no modo claro */
-.sidebar-light-primary .nav-sidebar .nav-item .nav-link.active {
-background-color: #e9ecef;
-color: #212529;
-font-weight: bold;
-}
+    .dark-mode .nav-sidebar .nav-link p {
+      color: #ced4da;
+    }
 
-.sidebar-light-primary .nav-sidebar .nav-item .nav-link.active i,
-.sidebar-light-primary .nav-sidebar .nav-item .nav-link.active p {
-color: #007bff;
-}
+    /* Melhorar a visibilidade dos itens ativos na sidebar no modo claro */
+    .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active {
+      background-color: #e9ecef;
+      color: #212529;
+      font-weight: bold;
+    }
 
-/* Manter o estilo original para o modo escuro */
-.sidebar-dark-primary .nav-sidebar .nav-item .nav-link.active {
-background-color: #007bff;
-}
+    .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active i,
+    .sidebar-light-primary .nav-sidebar .nav-item .nav-link.active p {
+      color: #007bff;
+    }
 
-/* Estilo para os créditos do desenvolvedor */
-.sidebar-developer-credits {
-border-top: 1px solid rgba(0,0,0,0.1);
-padding-top: 10px;
-}
+    /* Manter o estilo original para o modo escuro */
+    .sidebar-dark-primary .nav-sidebar .nav-item .nav-link.active {
+      background-color: #007bff;
+    }
 
-.dark-mode .sidebar-developer-credits {
-border-top: 1px solid rgba(255,255,255,0.1);
-}
+    /* Estilo para os créditos do desenvolvedor */
+    .sidebar-developer-credits {
+      border-top: 1px solid rgba(0, 0, 0, 0.1);
+      padding-top: 10px;
+    }
 
-.pending-badge {
-animation: pulse 2s infinite;
-}
-@keyframes pulse {
-0% { opacity: 1; }
-50% { opacity: 0.5; }
-100% { opacity: 1; }
-}
-.card-draggable .card-header {
-cursor: move;
-}
-.card-placeholder {
-border: 2px dashed #ccc;
-margin-bottom: 20px;
-height: 100px;
-border-radius: 5px;
-}
-.profile-pic {
-width: 35px;
-height: 35px;
-object-fit: cover;
-border-radius: 50%;
-}
-.user-panel .image img {
-width: 34px;
-height: 34px;
-object-fit: cover;
-}
+    .dark-mode .sidebar-developer-credits {
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
 
-/* Ajustes para impressão */
-@media print {
-.no-print {
-display: none !important;
-}
-.print-only {
-display: block !important;
-}
-body {
-background-color: white !important;
-color: black !important;
-overflow: visible !important;
-height: auto !important;
-}
-.content-wrapper {
-background-color: white !important;
-overflow: visible !important;
-height: auto !important;
-}
-.card {
-box-shadow: none !important;
-border: 1px solid #ddd !important;
-}
-.page-header {
-border-bottom: 1px solid #ddd;
-margin-bottom: 20px;
-padding-bottom: 10px;
-}
-}
-.print-only {
-display: none;
-}
+    .pending-badge {
+      animation: pulse 2s infinite;
+    }
 
-/* Estilos para modais */
-.modal-body p, .modal-body div {
-word-wrap: break-word;
-word-break: break-word;
-overflow-wrap: break-word;
-}
+    @keyframes pulse {
+      0% {
+        opacity: 1;
+      }
 
-.modal-content {
-max-width: 100%;
-}
+      50% {
+        opacity: 0.5;
+      }
 
-.alert {
-word-wrap: break-word;
-word-break: break-word;
-overflow-wrap: break-word;
-}
+      100% {
+        opacity: 1;
+      }
+    }
 
-/* Estilos para tabelas responsivas em dispositivos móveis */
-@media (max-width: 767.98px) {
-.table-responsive {
-display: block;
-width: 100%;
-overflow-x: auto;
--webkit-overflow-scrolling: touch;
-}
+    .card-draggable .card-header {
+      cursor: move;
+    }
 
-.table-responsive .btn-xs {
-padding: 0.2rem 0.4rem;
-font-size: 0.75rem;
-}
-}
+    .card-placeholder {
+      border: 2px dashed #ccc;
+      margin-bottom: 20px;
+      height: 100px;
+      border-radius: 5px;
+    }
 
-/* Estilos para NProgress */
-#nprogress .bar {
-background: #007bff;
-height: 3px;
-}
+    .profile-pic {
+      width: 35px;
+      height: 35px;
+      object-fit: cover;
+      border-radius: 50%;
+    }
 
-#nprogress .peg {
-box-shadow: 0 0 10px #007bff, 0 0 5px #007bff;
-}
+    .user-panel .image img {
+      width: 34px;
+      height: 34px;
+      object-fit: cover;
+    }
 
-#nprogress .spinner-icon {
-border-top-color: #007bff;
-border-left-color: #007bff;
-}
+    /* Ajustes para impressão */
+    @media print {
+      .no-print {
+        display: none !important;
+      }
 
-/* Animações de transição de página */
-.page-transition {
-transition: opacity 0.3s ease-in-out;
-}
+      .print-only {
+        display: block !important;
+      }
 
-.page-transition-enter {
-opacity: 0;
-}
+      body {
+        background-color: white !important;
+        color: black !important;
+        overflow: visible !important;
+        height: auto !important;
+      }
 
-.page-transition-enter-active {
-opacity: 1;
-}
+      .content-wrapper {
+        background-color: white !important;
+        overflow: visible !important;
+        height: auto !important;
+      }
 
-.page-transition-exit {
-opacity: 1;
-}
+      .card {
+        box-shadow: none !important;
+        border: 1px solid #ddd !important;
+      }
 
-.page-transition-exit-active {
-opacity: 0;
-}
+      .page-header {
+        border-bottom: 1px solid #ddd;
+        margin-bottom: 20px;
+        padding-bottom: 10px;
+      }
+    }
 
-/* Estilos para a barra de rolagem */
-/* Para navegadores baseados em WebKit (Chrome, Safari, Edge) */
-::-webkit-scrollbar {
-width: 10px;
-height: 10px;
-}
+    .print-only {
+      display: none;
+    }
 
-::-webkit-scrollbar-track {
-background: #f1f1f1;
-border-radius: 5px;
-}
+    /* Estilos para modais */
+    .modal-body p,
+    .modal-body div {
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
 
-::-webkit-scrollbar-thumb {
-background: #c1c1c1;
-border-radius: 5px;
-}
+    .modal-content {
+      max-width: 100%;
+    }
 
-::-webkit-scrollbar-thumb:hover {
-background: #a8a8a8;
-}
+    .alert {
+      word-wrap: break-word;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
 
-/* Estilos para a barra de rolagem no modo escuro */
-.dark-mode ::-webkit-scrollbar-track {
-background: #2d3238;
-}
+    /* Estilos para tabelas responsivas em dispositivos móveis */
+    @media (max-width: 767.98px) {
+      .table-responsive {
+        display: block;
+        width: 100%;
+        overflow-x: auto;
+        -webkit-overflow-scrolling: touch;
+      }
 
-.dark-mode ::-webkit-scrollbar-thumb {
-background: #4b5563;
-}
+      .table-responsive .btn-xs {
+        padding: 0.2rem 0.4rem;
+        font-size: 0.75rem;
+      }
+    }
 
-.dark-mode ::-webkit-scrollbar-thumb:hover {
-background: #6b7280;
-}
+    /* Estilos para NProgress */
+    #nprogress .bar {
+      background: #007bff;
+      height: 3px;
+    }
 
-/* Para Firefox */
-* {
-scrollbar-width: thin;
-scrollbar-color: #c1c1c1 #f1f1f1;
-}
+    #nprogress .peg {
+      box-shadow: 0 0 10px #007bff, 0 0 5px #007bff;
+    }
 
-.dark-mode * {
-scrollbar-color: #4b5563 #2d3238;
-}
+    #nprogress .spinner-icon {
+      border-top-color: #007bff;
+      border-left-color: #007bff;
+    }
 
-/* Estilos para MEI */
-.mei-header {
-background-color: #28a745;
-color: white;
-padding: 10px 15px;
-margin-bottom: 15px;
-border-radius: 5px;
-}
+    /* Animações de transição de página */
+    .page-transition {
+      transition: opacity 0.3s ease-in-out;
+    }
 
-.mei-header h4 {
-margin: 0;
-font-size: 1.2rem;
-}
+    .page-transition-enter {
+      opacity: 0;
+    }
 
-.mei-header p {
-margin: 0;
-font-size: 0.9rem;
-}
+    .page-transition-enter-active {
+      opacity: 1;
+    }
 
-.mei-badge {
-background-color: #28a745;
-color: white;
-}
-</style>
-{% block extra_css %}{% endblock %}
+    .page-transition-exit {
+      opacity: 1;
+    }
+
+    .page-transition-exit-active {
+      opacity: 0;
+    }
+
+    /* Estilos para a barra de rolagem */
+    /* Para navegadores baseados em WebKit (Chrome, Safari, Edge) */
+    ::-webkit-scrollbar {
+      width: 10px;
+      height: 10px;
+    }
+
+    ::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 5px;
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+
+    /* Estilos para a barra de rolagem no modo escuro */
+    .dark-mode ::-webkit-scrollbar-track {
+      background: #2d3238;
+    }
+
+    .dark-mode ::-webkit-scrollbar-thumb {
+      background: #4b5563;
+    }
+
+    .dark-mode ::-webkit-scrollbar-thumb:hover {
+      background: #6b7280;
+    }
+
+    /* Para Firefox */
+    * {
+      scrollbar-width: thin;
+      scrollbar-color: #c1c1c1 #f1f1f1;
+    }
+
+    .dark-mode * {
+      scrollbar-color: #4b5563 #2d3238;
+    }
+
+    /* Estilos para MEI */
+    .mei-header {
+      background-color: #28a745;
+      color: white;
+      padding: 10px 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+    }
+
+    .mei-header h4 {
+      margin: 0;
+      font-size: 1.2rem;
+    }
+
+    .mei-header p {
+      margin: 0;
+      font-size: 0.9rem;
+    }
+
+    .mei-badge {
+      background-color: #28a745;
+      color: white;
+    }
+  </style>
+  {% block extra_css %}{% endblock %}
 </head>
-<body class="hold-transition sidebar-mini layout-fixed {% if current_user.theme == 'dark' %}dark-mode{% endif %}" id="main-body">
-<div class="wrapper">
 
-<!-- Navbar -->
-<nav class="main-header navbar navbar-expand {% if current_user.theme == 'dark' %}navbar-dark{% else %}navbar-white navbar-light{% endif %}">
-<!-- Left navbar links -->
-<ul class="navbar-nav">
-<li class="nav-item">
-<a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
-</li>
-{% if not current_user.is_admin %}
-<li class="nav-item d-none d-sm-inline-block">
-<a href="{{ url_for('dashboard.index') }}" class="nav-link">Dashboard</a>
-</li>
-<li class="nav-item d-none d-sm-inline-block">
-  {% if current_user.is_mei %}
-  <a href="{{ url_for('transactions.index') }}" class="nav-link">Transações MEI</a>
-  {% else %}
-  <a href="{{ url_for('transactions.index') }}" class="nav-link">Transações</a>
-  {% endif %}
-</li>
-<!-- Removido link redundante para transações MEI -->
-{% else %}
-<li class="nav-item d-none d-sm-inline-block">
-<a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard Admin</a>
-</li>
-<li class="nav-item d-none d-sm-inline-block">
-<a href="{{ url_for('admin.users') }}" class="nav-link">Usuários</a>
-</li>
-{% endif %}
-</ul>
+<body class="hold-transition sidebar-mini layout-fixed {% if current_user.theme == 'dark' %}dark-mode{% endif %}"
+  id="main-body">
+  <div class="wrapper">
 
-<!-- Right navbar links -->
-<!-- Modificar a navbar para melhorar a responsividade no mobile -->
-<ul class="navbar-nav ml-auto">
-{% if current_user.is_mei %}
-<!-- Remover completamente as informações MEI da navbar e deixá-las apenas no sidebar e no cabeçalho MEI -->
-{% endif %}
-<li class="nav-item">
-<a class="nav-link" href="{{ url_for('settings.toggle_theme') }}" role="button">
-  {% if current_user.theme == 'dark' %}
-  <i class="fas fa-sun"></i> <span class="d-none d-md-inline">Modo Claro</span>
-  {% else %}
-  <i class="fas fa-moon"></i> <span class="d-none d-md-inline">Modo Escuro</span>
-  {% endif %}
-</a>
-</li>
-<li class="nav-item">
-<a class="nav-link" data-widget="fullscreen" href="#" role="button" id="fullscreen-toggle">
-  <i class="fas fa-expand-arrows-alt"></i>
-</a>
-</li>
-<li class="nav-item dropdown user-menu">
-<a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
-  <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="profile-pic" alt="Foto de Perfil">
-  <span class="d-none d-md-inline">{{ current_user.full_name or current_user.username }}</span>
-</a>
-<ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
-  <!-- User image -->
-  <li class="user-header bg-primary">
-    <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="img-circle elevation-2" alt="Foto de Perfil">
-    <p>
-      {{ current_user.full_name or current_user.username }}
+    <!-- Navbar -->
+    <nav
+      class="main-header navbar navbar-expand {% if current_user.theme == 'dark' %}navbar-dark{% else %}navbar-white navbar-light{% endif %}">
+      <!-- Left navbar links -->
+      <ul class="navbar-nav">
+        <li class="nav-item">
+          <a class="nav-link" data-widget="pushmenu" href="#" role="button"><i class="fas fa-bars"></i></a>
+        </li>
+        {% if not current_user.is_admin %}
+        <li class="nav-item d-none d-sm-inline-block">
+          <a href="{{ url_for('dashboard.index') }}" class="nav-link">Dashboard</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+          {% if current_user.is_mei %}
+          <a href="{{ url_for('transactions.index') }}" class="nav-link">Transações MEI</a>
+          {% else %}
+          <a href="{{ url_for('transactions.index') }}" class="nav-link">Transações</a>
+          {% endif %}
+        </li>
+        <!-- Removido link redundante para transações MEI -->
+        {% else %}
+        <li class="nav-item d-none d-sm-inline-block">
+          <a href="{{ url_for('admin.dashboard') }}" class="nav-link">Dashboard Admin</a>
+        </li>
+        <li class="nav-item d-none d-sm-inline-block">
+          <a href="{{ url_for('admin.users') }}" class="nav-link">Usuários</a>
+        </li>
+        {% endif %}
+      </ul>
+
+      <!-- Right navbar links -->
+      <!-- Modificar a navbar para melhorar a responsividade no mobile -->
+      <ul class="navbar-nav ml-auto">
+        {% if current_user.is_mei %}
+        <!-- Remover completamente as informações MEI da navbar e deixá-las apenas no sidebar e no cabeçalho MEI -->
+        {% endif %}
+        <li class="nav-item">
+          <a class="nav-link" href="{{ url_for('settings.toggle_theme') }}" role="button">
+            {% if current_user.theme == 'dark' %}
+            <i class="fas fa-sun"></i> <span class="d-none d-md-inline">Modo Claro</span>
+            {% else %}
+            <i class="fas fa-moon"></i> <span class="d-none d-md-inline">Modo Escuro</span>
+            {% endif %}
+          </a>
+        </li>
+        <li class="nav-item">
+          <a class="nav-link" data-widget="fullscreen" href="#" role="button" id="fullscreen-toggle">
+            <i class="fas fa-expand-arrows-alt"></i>
+          </a>
+        </li>
+        <li class="nav-item dropdown user-menu">
+          <a href="#" class="nav-link dropdown-toggle" data-toggle="dropdown">
+            <img
+              src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) if current_user.is_authenticated else url_for('static', filename='uploads/default_profile.png') }}"
+              class="profile-pic" alt="Foto de Perfil">
+            <span class="d-none d-md-inline">{{ current_user.full_name or current_user.username }}</span>
+          </a>
+          <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
+            <!-- User image -->
+            <li class="user-header bg-primary">
+              <img
+                src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) if current_user.is_authenticated else url_for('static', filename='uploads/default_profile.png') }}"
+                class="img-circle elevation-2" alt="Foto de Perfil">
+              <p>
+                {{ current_user.full_name or current_user.username }}
+                {% if current_user.is_mei %}
+                <small>{{ current_user.mei_company_name }} - {{ current_user.mei_cnpj }}</small>
+                {% endif %}
+                {% if current_user.is_authenticated %}
+                <small>Membro desde {{ current_user.created_at|format_local_datetime('%d/%m/%Y') }}</small>
+                {% endif %}
+              </p>
+            </li>
+            <!-- Menu Footer-->
+            <li class="user-footer">
+              <a href="{{ url_for('settings.index') }}" class="btn btn-default btn-flat">Perfil</a>
+              <a href="{{ url_for('auth.logout') }}" class="btn btn-default btn-flat float-right">Sair</a>
+            </li>
+          </ul>
+        </li>
+      </ul>
+    </nav>
+    <!-- /.navbar -->
+
+    <!-- Main Sidebar Container -->
+    <aside
+      class="main-sidebar {% if current_user.theme == 'dark' %}sidebar-dark-primary{% else %}sidebar-light-primary{% endif %} elevation-4">
+      <!-- Brand Logo -->
+      <a href="{{ url_for('dashboard.index') }}" class="brand-link">
+        <i class="fas fa-wallet ml-3 mr-2"></i>
+        <span class="brand-text font-weight-light">{% if current_user.is_mei %}MEI Finanças{% else %}Finanças Pessoais{%
+          endif %}</span>
+      </a>
+
+      <!-- Sidebar -->
+      <div class="sidebar">
+        <!-- Sidebar user panel (optional) -->
+        <div class="user-panel mt-3 pb-3 mb-3 d-flex">
+          <div class="image">
+            <img
+              src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) if current_user.is_authenticated else url_for('static', filename='uploads/default_profile.png') }}"
+              class="img-circle elevation-2" alt="Foto de Perfil">
+          </div>
+          <div class="info">
+            <a href="{{ url_for('settings.index') }}" class="d-block">{{ current_user.full_name or current_user.username
+              }}</a>
+            {% if current_user.is_mei %}
+            <small class="d-block text-muted">{{ current_user.mei_company_name }}</small>
+            <small class="d-block text-muted">{{ current_user.mei_cnpj }}</small>
+            {% endif %}
+          </div>
+        </div>
+
+        <!-- Sidebar Menu -->
+        <nav class="mt-2">
+          <ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
+            {% if not current_user.is_admin %}
+            <li class="nav-item">
+              <a href="{{ url_for('dashboard.index') }}"
+                class="nav-link {% if request.path == url_for('dashboard.index') %}active{% endif %}">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <p>Dashboard</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('accounts.index') }}"
+                class="nav-link {% if request.path == url_for('accounts.index') %}active{% endif %}">
+                <i class="nav-icon fas fa-university"></i>
+                <p>Contas Bancárias</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('transactions.index') }}"
+                class="nav-link {% if request.path == url_for('transactions.index') %}active{% endif %}">
+                <i class="nav-icon fas fa-exchange-alt"></i>
+                <p>{% if current_user.is_mei %}Transações MEI{% else %}Transações{% endif %}</p>
+              </a>
+            </li>
+
+            <li class="nav-item">
+              <a href="{{ url_for('categories.index') }}"
+                class="nav-link {% if request.path == url_for('categories.index') %}active{% endif %}">
+                <i class="nav-icon fas fa-tags"></i>
+                <p>Categorias</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="#" class="nav-link {% if 'reports' in request.path %}active{% endif %}">
+                <i class="nav-icon fas fa-chart-pie"></i>
+                <p>
+                  {% if current_user.is_mei %}Relatórios MEI{% else %}Relatórios{% endif %}
+                  <i class="right fas fa-angle-left"></i>
+                </p>
+              </a>
+              <ul class="nav nav-treeview">
+                {% if current_user.is_mei %}
+                <li class="nav-item">
+                  <a href="{{ url_for('reports.mei_report') }}"
+                    class="nav-link {% if request.path == url_for('reports.mei_report') %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Relatório Geral</p>
+                  </a>
+                </li>
+                {% else %}
+                <li class="nav-item">
+                  <a href="{{ url_for('reports.index') }}"
+                    class="nav-link {% if request.path == url_for('reports.index') %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Relatório Geral</p>
+                  </a>
+                </li>
+                <li class="nav-item">
+                  <a href="{{ url_for('reports.transactions_report') }}"
+                    class="nav-link {% if request.path == url_for('reports.transactions_report') %}active{% endif %}">
+                    <i class="far fa-circle nav-icon"></i>
+                    <p>Relatório de Transações</p>
+                  </a>
+                </li>
+                {% endif %}
+              </ul>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('goals.index') }}" class="nav-link">
+                <i class="nav-icon fas fa-bullseye"></i>
+                <p>Metas</p>
+              </a>
+            </li>
+            {% endif %}
+
+            <li class="nav-item">
+              <a href="{{ url_for('settings.index') }}"
+                class="nav-link {% if request.path == url_for('settings.index') %}active{% endif %}">
+                <i class="nav-icon fas fa-cog"></i>
+                <p>Configurações</p>
+              </a>
+            </li>
+
+            {% if current_user.is_admin %}
+            <li class="nav-item">
+              <a href="{{ url_for('admin.dashboard') }}"
+                class="nav-link {% if request.path == url_for('admin.dashboard') %}active{% endif %}">
+                <i class="nav-icon fas fa-tachometer-alt"></i>
+                <p>Dashboard Admin</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin.users') }}"
+                class="nav-link {% if request.path == url_for('admin.users') %}active{% endif %}">
+                <i class="nav-icon fas fa-users"></i>
+                <p>Gerenciar Usuários</p>
+              </a>
+            </li>
+            <li class="nav-item">
+              <a href="{{ url_for('admin.access_logs') }}"
+                class="nav-link {% if request.path == url_for('admin.access_logs') %}active{% endif %}">
+                <i class="nav-icon fas fa-history"></i>
+                <p>Logs de Acesso</p>
+              </a>
+            </li>
+            {% endif %}
+          </ul>
+        </nav>
+        <!-- /.sidebar-menu -->
+
+        <!-- Developer Credits -->
+        <div class="sidebar-developer-credits text-center mt-5 mb-3">
+          <div class="text-muted">
+            <small>Desenvolvido por Jonathan Laco</small>
+            <br>
+            <small>Versão 1.2.0</small>
+          </div>
+        </div>
+      </div>
+      <!-- /.sidebar -->
+    </aside>
+
+    <!-- Content Wrapper. Contains page content -->
+    <div class="content-wrapper">
+      <!-- Content Header (Page header) -->
+      <div class="content-header">
+        <div class="container-fluid">
+          <div class="row mb-2">
+            <div class="col-sm-6">
+              <h1 class="m-0">{% block page_title %}{% endblock %}</h1>
+            </div>
+            <div class="col-sm-6">
+              <ol class="breadcrumb float-sm-right">
+                <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Home</a></li>
+                <li class="breadcrumb-item active">{% block breadcrumb %}{% endblock %}</li>
+              </ol>
+            </div>
+          </div>
+        </div>
+      </div>
+      <!-- /.content-header -->
+
       {% if current_user.is_mei %}
-      <small>{{ current_user.mei_company_name }} - {{ current_user.mei_cnpj }}</small>
+      <!-- MEI Info Header -->
+      <div class="container-fluid">
+        <div class="mei-header">
+          <div class="row">
+            <div class="col-md-6">
+              <h4><i class="fas fa-building mr-2"></i> {{ current_user.mei_company_name }}</h4>
+              <p><i class="fas fa-id-card mr-2"></i> {{ current_user.mei_cnpj }}</p>
+            </div>
+            <div class="col-md-6 text-right">
+              <a href="{{ url_for('transactions.index') }}" class="btn btn-light btn-sm">
+                <i class="fas fa-exchange-alt"></i> Transações MEI
+              </a>
+              <a href="{{ url_for('reports.mei_report') }}" class="btn btn-light btn-sm ml-2">
+                <i class="fas fa-chart-bar"></i> Relatório MEI
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
       {% endif %}
-      <small>Membro desde {{ current_user.created_at|format_local_datetime('%d/%m/%Y') }}</small>
-    </p>
-  </li>
-  <!-- Menu Footer-->
-  <li class="user-footer">
-    <a href="{{ url_for('settings.index') }}" class="btn btn-default btn-flat">Perfil</a>
-    <a href="{{ url_for('auth.logout') }}" class="btn btn-default btn-flat float-right">Sair</a>
-  </li>
-</ul>
-</li>
-</ul>
-</nav>
-<!-- /.navbar -->
 
-<!-- Main Sidebar Container -->
-<aside class="main-sidebar {% if current_user.theme == 'dark' %}sidebar-dark-primary{% else %}sidebar-light-primary{% endif %} elevation-4">
-<!-- Brand Logo -->
-<a href="{{ url_for('dashboard.index') }}" class="brand-link">
-<i class="fas fa-wallet ml-3 mr-2"></i>
-<span class="brand-text font-weight-light">{% if current_user.is_mei %}MEI Finanças{% else %}Finanças Pessoais{% endif %}</span>
-</a>
+      <!-- Flash messages -->
+      <div class="container-fluid no-print">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+        {% if messages %}
+        {% for category, message in messages %}
+        <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
+          {{ message }}
+          <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+      </div>
 
-<!-- Sidebar -->
-<div class="sidebar">
-<!-- Sidebar user panel (optional) -->
-<div class="user-panel mt-3 pb-3 mb-3 d-flex">
-<div class="image">
-  <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="img-circle elevation-2" alt="Foto de Perfil">
-</div>
-<div class="info">
-  <a href="{{ url_for('settings.index') }}" class="d-block">{{ current_user.full_name or current_user.username }}</a>
-  {% if current_user.is_mei %}
-  <small class="d-block text-muted">{{ current_user.mei_company_name }}</small>
-  <small class="d-block text-muted">{{ current_user.mei_cnpj }}</small>
-  {% endif %}
-</div>
-</div>
-
-<!-- Sidebar Menu -->
-<nav class="mt-2">
-<ul class="nav nav-pills nav-sidebar flex-column" data-widget="treeview" role="menu" data-accordion="false">
-  {% if not current_user.is_admin %}
-  <li class="nav-item">
-    <a href="{{ url_for('dashboard.index') }}" class="nav-link {% if request.path == url_for('dashboard.index') %}active{% endif %}">
-      <i class="nav-icon fas fa-tachometer-alt"></i>
-      <p>Dashboard</p>
-    </a>
-  </li>
-  <li class="nav-item">
-    <a href="{{ url_for('accounts.index') }}" class="nav-link {% if request.path == url_for('accounts.index') %}active{% endif %}">
-      <i class="nav-icon fas fa-university"></i>
-      <p>Contas Bancárias</p>
-    </a>
-  </li>
-  
-  <li class="nav-item">
-  <a href="{{ url_for('transactions.index') }}" class="nav-link {% if request.path == url_for('transactions.index') %}active{% endif %}">
-    <i class="nav-icon fas fa-exchange-alt"></i>
-    <p>{% if current_user.is_mei %}Transações MEI{% else %}Transações{% endif %}</p>
-  </a>
-</li>
-  
-  <li class="nav-item">
-    <a href="{{ url_for('categories.index') }}" class="nav-link {% if request.path == url_for('categories.index') %}active{% endif %}">
-      <i class="nav-icon fas fa-tags"></i>
-      <p>Categorias</p>
-    </a>
-  </li>
-  <li class="nav-item">
-  <a href="#" class="nav-link {% if 'reports' in request.path %}active{% endif %}">
-    <i class="nav-icon fas fa-chart-pie"></i>
-    <p>
-      {% if current_user.is_mei %}Relatórios MEI{% else %}Relatórios{% endif %}
-      <i class="right fas fa-angle-left"></i>
-    </p>
-  </a>
-  <ul class="nav nav-treeview">
-    {% if current_user.is_mei %}
-    <li class="nav-item">
-      <a href="{{ url_for('reports.mei_report') }}" class="nav-link {% if request.path == url_for('reports.mei_report') %}active{% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Relatório Geral</p>
-      </a>
-    </li>
-    {% else %}
-    <li class="nav-item">
-      <a href="{{ url_for('reports.index') }}" class="nav-link {% if request.path == url_for('reports.index') %}active{% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Relatório Geral</p>
-      </a>
-    </li>
-    <li class="nav-item">
-      <a href="{{ url_for('reports.transactions_report') }}" class="nav-link {% if request.path == url_for('reports.transactions_report') %}active{% endif %}">
-        <i class="far fa-circle nav-icon"></i>
-        <p>Relatório de Transações</p>
-      </a>
-    </li>
-    {% endif %}
-  </ul>
-</li>
-  <li class="nav-item">
-    <a href="{{ url_for('goals.index') }}" class="nav-link">
-      <i class="nav-icon fas fa-bullseye"></i>
-      <p>Metas</p>
-    </a>
-  </li>
-  {% endif %}
-  
-  <li class="nav-item">
-    <a href="{{ url_for('settings.index') }}" class="nav-link {% if request.path == url_for('settings.index') %}active{% endif %}">
-      <i class="nav-icon fas fa-cog"></i>
-      <p>Configurações</p>
-    </a>
-  </li>
-  
-  {% if current_user.is_admin %}
-  <li class="nav-item">
-    <a href="{{ url_for('admin.dashboard') }}" class="nav-link {% if request.path == url_for('admin.dashboard') %}active{% endif %}">
-      <i class="nav-icon fas fa-tachometer-alt"></i>
-      <p>Dashboard Admin</p>
-    </a>
-  </li>
-  <li class="nav-item">
-    <a href="{{ url_for('admin.users') }}" class="nav-link {% if request.path == url_for('admin.users') %}active{% endif %}">
-      <i class="nav-icon fas fa-users"></i>
-      <p>Gerenciar Usuários</p>
-    </a>
-  </li>
-  <li class="nav-item">
-    <a href="{{ url_for('admin.access_logs') }}" class="nav-link {% if request.path == url_for('admin.access_logs') %}active{% endif %}">
-      <i class="nav-icon fas fa-history"></i>
-      <p>Logs de Acesso</p>
-    </a>
-  </li>
-  {% endif %}
-</ul>
-</nav>
-<!-- /.sidebar-menu -->
-
-<!-- Developer Credits -->
-<div class="sidebar-developer-credits text-center mt-5 mb-3">
-<div class="text-muted">
-  <small>Desenvolvido por Jonathan Laco</small>
-  <br>
-  <small>Versão 1.2.0</small>
-</div>
-</div>
-</div>
-<!-- /.sidebar -->
-</aside>
-
-<!-- Content Wrapper. Contains page content -->
-<div class="content-wrapper">
-<!-- Content Header (Page header) -->
-<div class="content-header">
-<div class="container-fluid">
-<div class="row mb-2">
-  <div class="col-sm-6">
-    <h1 class="m-0">{% block page_title %}{% endblock %}</h1>
-  </div>
-  <div class="col-sm-6">
-    <ol class="breadcrumb float-sm-right">
-      <li class="breadcrumb-item"><a href="{{ url_for('dashboard.index') }}">Home</a></li>
-      <li class="breadcrumb-item active">{% block breadcrumb %}{% endblock %}</li>
-    </ol>
-  </div>
-</div>
-</div>
-</div>
-<!-- /.content-header -->
-
-{% if current_user.is_mei %}
-<!-- MEI Info Header -->
-<div class="container-fluid">
-<div class="mei-header">
-  <div class="row">
-    <div class="col-md-6">
-      <h4><i class="fas fa-building mr-2"></i> {{ current_user.mei_company_name }}</h4>
-      <p><i class="fas fa-id-card mr-2"></i> {{ current_user.mei_cnpj }}</p>
+      <!-- Main content -->
+      <section class="content">
+        <div class="container-fluid page-transition">
+          {% block content %}{% endblock %}
+        </div>
+      </section>
+      <!-- /.content -->
     </div>
-    <div class="col-md-6 text-right">
-      <a href="{{ url_for('transactions.index') }}" class="btn btn-light btn-sm">
-        <i class="fas fa-exchange-alt"></i> Transações MEI
-      </a>
-      <a href="{{ url_for('reports.mei_report') }}" class="btn btn-light btn-sm ml-2">
-        <i class="fas fa-chart-bar"></i> Relatório MEI
-      </a>
-    </div>
+    <!-- /.content-wrapper -->
+
+    <footer class="main-footer no-print">
+      <strong>{% if current_user.is_mei %}{{ current_user.mei_company_name }} - Sistema de Gerenciamento Financeiro
+        MEI{% else %}Sistema de Gerenciamento Financeiro Pessoal{% endif %}</strong>
+      <div class="float-right d-none d-sm-inline-block">
+        <b>Versão</b> 1.2.0
+      </div>
+    </footer>
   </div>
-</div>
-</div>
-{% endif %}
+  <!-- ./wrapper -->
 
-<!-- Flash messages -->
-<div class="container-fluid no-print">
-{% with messages = get_flashed_messages(with_categories=true) %}
-{% if messages %}
-  {% for category, message in messages %}
-    <div class="alert alert-{{ category }} alert-dismissible fade show" role="alert">
-      {{ message }}
-      <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-        <span aria-hidden="true">&times;</span>
-      </button>
-    </div>
-  {% endfor %}
-{% endif %}
-{% endwith %}
-</div>
+  <!-- jQuery -->
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <!-- jQuery UI -->
+  <script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
+  <!-- Bootstrap 4 -->
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+  <!-- AdminLTE App -->
+  <script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
+  <!-- Spectrum Colorpicker -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
+  <!-- NProgress -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
 
-<!-- Main content -->
-<section class="content">
-<div class="container-fluid page-transition">
-{% block content %}{% endblock %}
-</div>
-</section>
-<!-- /.content -->
-</div>
-<!-- /.content-wrapper -->
+  <script>
+    // Gerenciamento de tela cheia
+    document.addEventListener('DOMContentLoaded', function () {
+      // Verificar se o estado de tela cheia está armazenado
+      const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
 
-<footer class="main-footer no-print">
-<strong>{% if current_user.is_mei %}{{ current_user.mei_company_name }} - Sistema de Gerenciamento Financeiro MEI{% else %}Sistema de Gerenciamento Financeiro Pessoal{% endif %}</strong>
-<div class="float-right d-none d-sm-inline-block">
-<b>Versão</b> 1.2.0
-</div>
-</footer>
-</div>
-<!-- ./wrapper -->
+      // Se estiver armazenado como tela cheia, ativar tela cheia
+      if (isFullscreen) {
+        toggleFullScreen();
+      }
 
-<!-- jQuery -->
-<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-<!-- jQuery UI -->
-<script src="https://code.jquery.com/ui/1.13.2/jquery-ui.min.js"></script>
-<!-- Bootstrap 4 -->
-<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
-<!-- AdminLTE App -->
-<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
-<!-- Chart.js -->
-<script src="https://cdn.jsdelivr.net/npm/chart.js@3.7.1/dist/chart.min.js"></script>
-<!-- Spectrum Colorpicker -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/spectrum/1.8.1/spectrum.min.js"></script>
-<!-- NProgress -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/nprogress/0.2.0/nprogress.min.js"></script>
+      // Adicionar evento de clique ao botão de tela cheia
+      document.getElementById('fullscreen-toggle').addEventListener('click', function (e) {
+        e.preventDefault();
+        toggleFullScreen();
 
-<script>
-// Gerenciamento de tela cheia
-document.addEventListener('DOMContentLoaded', function() {
-// Verificar se o estado de tela cheia está armazenado
-const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
+        // Alternar o estado armazenado
+        const currentState = localStorage.getItem('isFullscreen') === 'true';
+        localStorage.setItem('isFullscreen', (!currentState).toString());
+      });
 
-// Se estiver armazenado como tela cheia, ativar tela cheia
-if (isFullscreen) {
-toggleFullScreen();
-}
+      // Função para alternar tela cheia
+      function toggleFullScreen() {
+        const body = document.getElementById('main-body');
 
-// Adicionar evento de clique ao botão de tela cheia
-document.getElementById('fullscreen-toggle').addEventListener('click', function(e) {
-e.preventDefault();
-toggleFullScreen();
+        if (!document.fullscreenElement &&
+          !document.mozFullScreenElement &&
+          !document.webkitFullscreenElement &&
+          !document.msFullscreenElement) {
+          // Entrar em tela cheia
+          if (body.requestFullscreen) {
+            body.requestFullscreen();
+          } else if (body.msRequestFullscreen) {
+            body.msRequestFullscreen();
+          } else if (body.mozRequestFullScreen) {
+            body.mozRequestFullScreen();
+          } else if (body.webkitRequestFullscreen) {
+            body.webkitRequestFullscreen();
+          }
+          localStorage.setItem('isFullscreen', 'true');
+        } else {
+          // Sair da tela cheia
+          if (document.exitFullscreen) {
+            document.exitFullscreen();
+          } else if (document.msExitFullscreen) {
+            document.msExitFullscreen();
+          } else if (document.mozCancelFullScreen) {
+            document.mozCancelFullScreen();
+          } else if (document.webkitExitFullscreen) {
+            document.webkitExitFullscreen();
+          }
+          localStorage.setItem('isFullscreen', 'false');
+        }
+      }
 
-// Alternar o estado armazenado
-const currentState = localStorage.getItem('isFullscreen') === 'true';
-localStorage.setItem('isFullscreen', (!currentState).toString());
-});
+      // Detectar quando o usuário sai da tela cheia usando ESC
+      document.addEventListener('fullscreenchange', handleFullscreenChange);
+      document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
+      document.addEventListener('mozfullscreenchange', handleFullscreenChange);
+      document.addEventListener('MSFullscreenChange', handleFullscreenChange);
 
-// Função para alternar tela cheia
-function toggleFullScreen() {
-const body = document.getElementById('main-body');
+      function handleFullscreenChange() {
+        if (!document.fullscreenElement &&
+          !document.webkitFullscreenElement &&
+          !document.mozFullScreenElement &&
+          !document.msFullscreenElement) {
+          localStorage.setItem('isFullscreen', 'false');
+        }
+      }
 
-if (!document.fullscreenElement &&
-  !document.mozFullScreenElement &&
-  !document.webkitFullscreenElement &&
-  !document.msFullscreenElement) {
-// Entrar em tela cheia
-if (body.requestFullscreen) {
-  body.requestFullscreen();
-} else if (body.msRequestFullscreen) {
-  body.msRequestFullscreen();
-} else if (body.mozRequestFullScreen) {
-  body.mozRequestFullScreen();
-} else if (body.webkitRequestFullscreen) {
-  body.webkitRequestFullscreen();
-}
-localStorage.setItem('isFullscreen', 'true');
-} else {
-// Sair da tela cheia
-if (document.exitFullscreen) {
-  document.exitFullscreen();
-} else if (document.msExitFullscreen) {
-  document.msExitFullscreen();
-} else if (document.mozCancelFullScreen) {
-  document.mozCancelFullScreen();
-} else if (document.webkitExitFullscreen) {
-  document.webkitExitFullscreen();
-}
-localStorage.setItem('isFullscreen', 'false');
-}
-}
+      // Verificar o estado de tela cheia ao carregar a página
+      window.addEventListener('load', function () {
+        const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
+        if (isFullscreen && !document.fullscreenElement) {
+          // Tentar restaurar o modo de tela cheia após um pequeno atraso
+          setTimeout(function () {
+            toggleFullScreen();
+          }, 100);
+        }
+      });
 
-// Detectar quando o usuário sai da tela cheia usando ESC
-document.addEventListener('fullscreenchange', handleFullscreenChange);
-document.addEventListener('webkitfullscreenchange', handleFullscreenChange);
-document.addEventListener('mozfullscreenchange', handleFullscreenChange);
-document.addEventListener('MSFullscreenChange', handleFullscreenChange);
+      // Adicionar transições de página suaves
+      $(document).ready(function () {
+        // Configurar NProgress
+        NProgress.configure({
+          showSpinner: false,
+          minimum: 0.1,
+          easing: 'ease',
+          speed: 500
+        });
 
-function handleFullscreenChange() {
-if (!document.fullscreenElement && 
-  !document.webkitFullscreenElement && 
-  !document.mozFullScreenElement &&
-  !document.msFullscreenElement) {
-localStorage.setItem('isFullscreen', 'false');
-}
-}
+        // Iniciar NProgress quando um link é clicado
+        $(document).on('click', 'a:not([href^="#"]):not([target="_blank"]):not([href^="javascript"]):not([href^="mailto"])', function () {
+          // Salvar o estado de tela cheia antes da navegação
+          const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
+          localStorage.setItem('isFullscreen_temp', isFullscreen);
 
-// Verificar o estado de tela cheia ao carregar a página
-window.addEventListener('load', function() {
-const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
-if (isFullscreen && !document.fullscreenElement) {
-// Tentar restaurar o modo de tela cheia após um pequeno atraso
-setTimeout(function() {
-  toggleFullScreen();
-}, 100);
-}
-});
+          // Iniciar a barra de progresso
+          NProgress.start();
 
-// Adicionar transições de página suaves
-$(document).ready(function() {
-// Configurar NProgress
-NProgress.configure({ 
-showSpinner: false,
-minimum: 0.1,
-easing: 'ease',
-speed: 500
-});
+          // Adicionar efeito de fade-out
+          $('.page-transition').addClass('page-transition-exit-active');
 
-// Iniciar NProgress quando um link é clicado
-$(document).on('click', 'a:not([href^="#"]):not([target="_blank"]):not([href^="javascript"]):not([href^="mailto"])', function() {
-// Salvar o estado de tela cheia antes da navegação
-const isFullscreen = localStorage.getItem('isFullscreen') === 'true';
-localStorage.setItem('isFullscreen_temp', isFullscreen);
+          // Pequeno atraso para mostrar a animação
+          setTimeout(function () {
+            NProgress.done();
+          }, 300);
+        });
 
-// Iniciar a barra de progresso
-NProgress.start();
+        // Quando a página carrega, aplicar efeito de fade-in
+        $('.page-transition').addClass('page-transition-enter-active');
+      });
+    });
+  </script>
 
-// Adicionar efeito de fade-out
-$('.page-transition').addClass('page-transition-exit-active');
-
-// Pequeno atraso para mostrar a animação
-setTimeout(function() {
-  NProgress.done();
-}, 300);
-});
-
-// Quando a página carrega, aplicar efeito de fade-in
-$('.page-transition').addClass('page-transition-enter-active');
-});
-});
-</script>
-
-{% block scripts %}{% endblock %}
+  {% block scripts %}{% endblock %}
 </body>
+
 </html>
