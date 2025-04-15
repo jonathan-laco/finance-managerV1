@@ -270,8 +270,6 @@ def delete_user(user_id):
     # Excluir todas as categorias do usuário
     Category.query.filter_by(user_id=user_id).delete()
     
-    # Excluir todos os alertas do usuário
-    Alert.query.filter_by(user_id=user_id).delete()
     
     # Excluir todas as metas do usuário
     Goal.query.filter_by(user_id=user_id).delete()
