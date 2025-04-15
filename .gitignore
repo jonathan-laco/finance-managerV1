@@ -1,3 +1,4 @@
-./instance/finance.db
+instance/finance.db
 *.pyc
 __pycache__/
+*.log
