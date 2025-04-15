@@ -243,7 +243,7 @@ def delete_user(user_id):
     """
     Exclui um usuário e todos os seus dados
     """
-    from models import User, Transaction, BankAccount, Category, Invoice, Alert, Goal, UserAccessLog
+    from models import User, Transaction, BankAccount, Category, Invoice, Goal, UserAccessLog
     
     user = User.query.get(user_id)
     if not user:
