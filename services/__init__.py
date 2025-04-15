@@ -7,5 +7,4 @@ from services.category_service import *
 from services.report_service import *
 from services.user_service import *
 from services.invoice_service import *
-from services.alert_service import *
 from services.goal_service import *
