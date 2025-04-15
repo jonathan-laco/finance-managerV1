@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Editar Meta{% endblock %}
+{% block breadcrumb %}
+<li class="breadcrumb-item"><a href="{{ url_for('goals.index') }}">Metas</a></li>
+<li class="breadcrumb-item active">Editar Meta</li>
+{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6">
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Editar Meta Financeira</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+    <form method="post" action="{{ url_for('goals.edit', goal_id=goal.id) }}">
+      <div class="card-body">
+        <div class="form-group">
+          <label for="title">Título *</label>
+          <input type="text" class="form-control" id="title" name="title" value="{{ goal.title }}" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <textarea class="form-control" id="description" name="description" rows="3">{{ goal.description }}</textarea>
+        </div>
+        
+        <div class="form-group">
+          <label for="target_amount">Valor Alvo *</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">R$</span>
+            </div>
+            <input type="number" class="form-control" id="target_amount" name="target_amount" step="0.01" min="0" value="{{ goal.target_amount }}" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="current_amount">Valor Atual</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">R$</span>
+            </div>
+            <input type="number" class="form-control" id="current_amount" name="current_amount" step="0.01" min="0" value="{{ goal.current_amount }}">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="target_date">Data Limite</label>
+          <input type="date" class="form-control" id="target_date" name="target_date" value="{{ goal.target_date.strftime('%Y-%m-%d') if goal.target_date else '' }}">
+        </div>
+        
+        <div class="form-group">
+          <label for="category">Categoria</label>
+          <input type="text" class="form-control" id="category" name="category" value="{{ goal.category }}" placeholder="Ex: Casa, Carro, Viagem, Educação">
+        </div>
+        
+        <div class="form-group">
+          <label for="color">Cor</label>
+          <input type="color" class="form-control" id="color" name="color" value="{{ goal.color }}">
+        </div>
+        
+        <div class="form-group">
+          <label for="status">Status</label>
+          <select class="form-control" id="status" name="status">
+            <option value="in_progress" {% if goal.status == 'in_progress' %}selected{% endif %}>Em Andamento</option>
+            <option value="completed" {% if goal.status == 'completed' %}selected{% endif %}>Concluída</option>
+            <option value="cancelled" {% if goal.status == 'cancelled' %}selected{% endif %}>Cancelada</option>
+          </select>
+        </div>
+      </div>
+      <!-- /.card-body -->
+
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ url_for('goals.index') }}" class="btn btn-default float-right">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  <!-- /.card -->
+</div>
+
+<div class="col-md-6">
+  <div class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Informações</h3>
+    </div>
+    <div class="card-body">
+      <div class="callout callout-info">
+        <h5>Sobre Metas Financeiras</h5>
+        <p>Atualize sua meta conforme seu progresso:</p>
+        <ul>
+          <li>Ajuste o valor atual conforme você economiza</li>
+          <li>Altere a data limite se necessário</li>
+          <li>Atualize o status para refletir seu progresso</li>
+        </ul>
+      </div>
+      
+      <div class="callout callout-warning">
+        <h5>Status da Meta</h5>
+        <p>Você pode definir o status da sua meta como:</p>
+        <ul>
+          <li><strong>Em Andamento:</strong> Você ainda está trabalhando para atingir a meta</li>
+          <li><strong>Concluída:</strong> Você atingiu com sucesso o valor alvo</li>
+          <li><strong>Cancelada:</strong> Você decidiu abandonar ou adiar esta meta</li>
+        </ul>
+        <p>Metas concluídas ou canceladas não poderão receber novos valores.</p>
+      </div>
+      
+      <div class="callout callout-success">
+        <h5>Progresso Atual</h5>
+        <div class="progress">
+          <div class="progress-bar" role="progressbar" style="width: {{ goal.progress_percentage }}%; background-color: {{ goal.color }};" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ "%.1f"|format(goal.progress_percentage) }}%</div>
+        </div>
+        <p class="mt-2">Valor acumulado: R$ {{ "%.2f"|format(goal.current_amount) }} de R$ {{ "%.2f"|format(goal.target_amount) }}</p>
+        <p>Faltam: R$ {{ "%.2f"|format(goal.target_amount - goal.current_amount) }}</p>
+      </div>
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+</div>
+{% endblock %}

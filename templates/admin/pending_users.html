@@ -1,0 +1,75 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Usuários Pendentes de Aprovação{% endblock %}
+{% block breadcrumb %}Usuários Pendentes de Aprovação{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Lista de Usuários Pendentes</h3>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap">
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Nome de Usuário</th>
+              <th>Email</th>
+              <th>Nome Completo</th>
+              <th>MEI</th>
+              <th>Data de Cadastro</th>
+              <th>Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for user in users %}
+            <tr>
+              <td>{{ user.id }}</td>
+              <td>{{ user.username }}</td>
+              <td>{{ user.email }}</td>
+              <td>{{ user.full_name or '-' }}</td>
+              <td>
+                {% if user.is_mei %}
+                <span class="badge bg-success">Sim</span>
+                {% else %}
+                <span class="badge bg-secondary">Não</span>
+                {% endif %}
+              </td>
+              <td>{{ user.created_at|format_local_datetime('%d/%m/%Y %H:%M') }}</td>
+              <td>
+                <div class="btn-group">
+                  <form action="{{ url_for('admin.approve_user', user_id=user.id) }}" method="post" class="d-inline">
+                    <button type="submit" class="btn btn-sm btn-success">
+                      <i class="fas fa-check"></i> Aprovar
+                    </button>
+                  </form>
+                  <form action="{{ url_for('admin.reject_user', user_id=user.id) }}" method="post" class="d-inline ml-1">
+                    <button type="submit" class="btn btn-sm btn-danger">
+                      <i class="fas fa-times"></i> Rejeitar
+                    </button>
+                  </form>
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="text-center">Não há usuários pendentes de aprovação.</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+      <!-- /.card-body -->
+      <div class="card-footer">
+        <a href="{{ url_for('admin.dashboard') }}" class="btn btn-secondary">
+          <i class="fas fa-arrow-left"></i> Voltar para o Dashboard
+        </a>
+      </div>
+    </div>
+    <!-- /.card -->
+  </div>
+</div>
+{% endblock %}

@@ -1,0 +1,436 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Metas Financeiras{% endblock %}
+{% block breadcrumb %}Metas Financeiras{% endblock %}
+
+{% block content %}
+<div class="row mb-3">
+<div class="col-md-12">
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Metas Financeiras</h3>
+    <div class="card-tools">
+      <a href="{{ url_for('goals.add') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> Nova Meta
+      </a>
+    </div>
+  </div>
+  <div class="card-body">
+    <div class="row">
+      <div class="col-md-3">
+        <div class="small-box bg-info">
+          <div class="inner">
+            <h3>{{ summary.total_goals }}</h3>
+            <p>Total de Metas</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-flag"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="small-box bg-success">
+          <div class="inner">
+            <h3>{{ summary.completed_goals }}</h3>
+            <p>Metas Concluídas</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-check-circle"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="small-box bg-warning">
+          <div class="inner">
+            <h3>{{ summary.in_progress_goals }}</h3>
+            <p>Metas em Andamento</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-spinner"></i>
+          </div>
+        </div>
+      </div>
+      <div class="col-md-3">
+        <div class="small-box bg-danger">
+          <div class="inner">
+            <h3>R$ {{ "%.2f"|format(summary.total_needed) }}</h3>
+            <p>Valor Necessário</p>
+          </div>
+          <div class="icon">
+            <i class="fas fa-money-bill"></i>
+          </div>
+        </div>
+      </div>
+    </div>
+    
+    <ul class="nav nav-tabs" id="goalTabs" role="tablist">
+      <li class="nav-item">
+        <a class="nav-link active" id="in-progress-tab" data-toggle="tab" href="#in-progress" role="tab" aria-controls="in-progress" aria-selected="true">
+          Em Andamento <span class="badge badge-warning">{{ in_progress_goals|length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="completed-tab" data-toggle="tab" href="#completed" role="tab" aria-controls="completed" aria-selected="false">
+          Concluídas <span class="badge badge-success">{{ completed_goals|length }}</span>
+        </a>
+      </li>
+      <li class="nav-item">
+        <a class="nav-link" id="cancelled-tab" data-toggle="tab" href="#cancelled" role="tab" aria-controls="cancelled" aria-selected="false">
+          Canceladas <span class="badge badge-secondary">{{ cancelled_goals|length }}</span>
+        </a>
+      </li>
+    </ul>
+    
+    <div class="tab-content mt-3" id="goalTabsContent">
+      <div class="tab-pane fade show active" id="in-progress" role="tabpanel" aria-labelledby="in-progress-tab">
+        {% if in_progress_goals %}
+          <div class="row">
+            {% for goal in in_progress_goals %}
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-header" style="background-color: {{ goal.color }}; color: white;">
+                    <h3 class="card-title">{{ goal.title }}</h3>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right">
+                        <a href="{{ url_for('goals.edit', goal_id=goal.id) }}" class="dropdown-item">
+                          <i class="fas fa-edit"></i> Editar
+                        </a>
+                        <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="dropdown-item">
+                          <i class="fas fa-info-circle"></i> Detalhes
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item" data-toggle="modal" data-target="#addAmountModal{{ goal.id }}">
+                          <i class="fas fa-plus-circle"></i> Adicionar Valor
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-danger" data-toggle="modal" data-target="#deleteModal{{ goal.id }}">
+                          <i class="fas fa-trash"></i> Excluir
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="text-center mb-3">
+                      <h5>R$ {{ "%.2f"|format(goal.current_amount) }} / R$ {{ "%.2f"|format(goal.target_amount) }}</h5>
+                      <div class="progress">
+                        <div class="progress-bar" role="progressbar" style="width: {{ goal.progress_percentage }}%; background-color: {{ goal.color }};" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ "%.1f"|format(goal.progress_percentage) }}%</div>
+                      </div>
+                    </div>
+                    
+                    {% if goal.description %}
+                      <p class="text-muted small">{{ goal.description|truncate(100) }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                      {% if goal.target_date %}
+                        <small class="text-muted">
+                          <i class="far fa-calendar-alt"></i> 
+                          {{ goal.target_date|format_local_datetime('%d/%m/%Y') }}
+                          {% if goal.days_remaining is not none %}
+                            <span class="badge badge-info">{{ goal.days_remaining }} dias</span>
+                          {% endif %}
+                        </small>
+                      {% endif %}
+                      
+                      {% if goal.category %}
+                        <small class="badge badge-light">
+                          <i class="fas fa-tag"></i> {{ goal.category }}
+                        </small>
+                      {% endif %}
+                    </div>
+                    
+                    {% if goal.is_on_track is not none %}
+                      <div class="text-center mt-2">
+                        {% if goal.is_on_track %}
+                          <span class="badge badge-success"><i class="fas fa-check"></i> No caminho certo</span>
+                        {% else %}
+                          <span class="badge badge-danger"><i class="fas fa-exclamation-triangle"></i> Atrasado</span>
+                        {% endif %}
+                      </div>
+                    {% endif %}
+                  </div>
+                  <div class="card-footer">
+                    <button type="button" class="btn btn-sm btn-primary" data-toggle="modal" data-target="#addAmountModal{{ goal.id }}">
+                      <i class="fas fa-plus-circle"></i> Adicionar Valor
+                    </button>
+                    <div class="btn-group">
+                      <a href="{{ url_for('goals.edit', goal_id=goal.id) }}" class="btn btn-sm btn-warning">
+                        <i class="fas fa-edit"></i> Editar
+                      </a>
+                      <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="btn btn-sm btn-info">
+                        <i class="fas fa-info-circle"></i> Detalhes
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal para Adicionar Valor -->
+              <div class="modal fade" id="addAmountModal{{ goal.id }}" tabindex="-1" role="dialog" aria-labelledby="addAmountModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="addAmountModalLabel{{ goal.id }}">Adicionar Valor à Meta</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="{{ url_for('goals.add_amount', goal_id=goal.id) }}" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label for="amount{{ goal.id }}">Valor a adicionar</label>
+                          <div class="input-group">
+                            <div class="input-group-prepend">
+                              <span class="input-group-text">R$</span>
+                            </div>
+                            <input type="number" class="form-control" id="amount{{ goal.id }}" name="amount" step="0.01" min="0.01" required>
+                          </div>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Adicionar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Exclusão -->
+              <div class="modal fade" id="deleteModal{{ goal.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ goal.id }}">Confirmar Exclusão</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Tem certeza que deseja excluir esta meta?</p>
+                      <p><strong>Título:</strong> {{ goal.title }}</p>
+                      <p><strong>Progresso:</strong> R$ {{ "%.2f"|format(goal.current_amount) }} / R$ {{ "%.2f"|format(goal.target_amount) }} ({{ "%.1f"|format(goal.progress_percentage) }}%)</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('goals.delete', goal_id=goal.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Não há metas em andamento.
+            <a href="{{ url_for('goals.add') }}" class="alert-link">Crie uma nova meta</a> para começar a acompanhar seu progresso.
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Metas Concluídas -->
+      <div class="tab-pane fade" id="completed" role="tabpanel" aria-labelledby="completed-tab">
+        {% if completed_goals %}
+          <div class="row">
+            {% for goal in completed_goals %}
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-header" style="background-color: {{ goal.color }}; color: white;">
+                    <h3 class="card-title">{{ goal.title }}</h3>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right">
+                        <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="dropdown-item">
+                          <i class="fas fa-info-circle"></i> Detalhes
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-danger" data-toggle="modal" data-target="#deleteModal{{ goal.id }}">
+                          <i class="fas fa-trash"></i> Excluir
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="text-center mb-3">
+                      <h5>R$ {{ "%.2f"|format(goal.current_amount) }} / R$ {{ "%.2f"|format(goal.target_amount) }}</h5>
+                      <div class="progress">
+                        <div class="progress-bar bg-success" role="progressbar" style="width: 100%;" aria-valuenow="100" aria-valuemin="0" aria-valuemax="100">100%</div>
+                      </div>
+                    </div>
+                    
+                    {% if goal.description %}
+                      <p class="text-muted small">{{ goal.description|truncate(100) }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                      {% if goal.target_date %}
+                        <small class="text-muted">
+                          <i class="far fa-calendar-alt"></i> 
+                          {{ goal.target_date|format_local_datetime('%d/%m/%Y') }}
+                        </small>
+                      {% endif %}
+                      
+                      {% if goal.category %}
+                        <small class="badge badge-light">
+                          <i class="fas fa-tag"></i> {{ goal.category }}
+                        </small>
+                      {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-2">
+                      <span class="badge badge-success"><i class="fas fa-trophy"></i> Meta concluída</span>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <div class="btn-group">
+                      <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="btn btn-sm btn-info">
+                        <i class="fas fa-info-circle"></i> Detalhes
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Exclusão -->
+              <div class="modal fade" id="deleteModal{{ goal.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ goal.id }}">Confirmar Exclusão</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Tem certeza que deseja excluir esta meta concluída?</p>
+                      <p><strong>Título:</strong> {{ goal.title }}</p>
+                      <p><strong>Valor:</strong> R$ {{ "%.2f"|format(goal.target_amount) }}</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('goals.delete', goal_id=goal.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Não há metas concluídas.
+          </div>
+        {% endif %}
+      </div>
+      
+      <!-- Metas Canceladas -->
+      <div class="tab-pane fade" id="cancelled" role="tabpanel" aria-labelledby="cancelled-tab">
+        {% if cancelled_goals %}
+          <div class="row">
+            {% for goal in cancelled_goals %}
+              <div class="col-md-4">
+                <div class="card">
+                  <div class="card-header bg-secondary text-white">
+                    <h3 class="card-title">{{ goal.title }}</h3>
+                    <div class="card-tools">
+                      <button type="button" class="btn btn-tool" data-toggle="dropdown">
+                        <i class="fas fa-ellipsis-v"></i>
+                      </button>
+                      <div class="dropdown-menu dropdown-menu-right">
+                        <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="dropdown-item">
+                          <i class="fas fa-info-circle"></i> Detalhes
+                        </a>
+                        <div class="dropdown-divider"></div>
+                        <a href="#" class="dropdown-item text-danger" data-toggle="modal" data-target="#deleteModal{{ goal.id }}">
+                          <i class="fas fa-trash"></i> Excluir
+                        </a>
+                      </div>
+                    </div>
+                  </div>
+                  <div class="card-body">
+                    <div class="text-center mb-3">
+                      <h5>R$ {{ "%.2f"|format(goal.current_amount) }} / R$ {{ "%.2f"|format(goal.target_amount) }}</h5>
+                      <div class="progress">
+                        <div class="progress-bar bg-secondary" role="progressbar" style="width: {{ goal.progress_percentage }}%;" aria-valuenow="{{ goal.progress_percentage }}" aria-valuemin="0" aria-valuemax="100">{{ "%.1f"|format(goal.progress_percentage) }}%</div>
+                      </div>
+                    </div>
+                    
+                    {% if goal.description %}
+                      <p class="text-muted small">{{ goal.description|truncate(100) }}</p>
+                    {% endif %}
+                    
+                    <div class="d-flex justify-content-between align-items-center mt-2">
+                      {% if goal.target_date %}
+                        <small class="text-muted">
+                          <i class="far fa-calendar-alt"></i> 
+                          {{ goal.target_date|format_local_datetime('%d/%m/%Y') }}
+                        </small>
+                      {% endif %}
+                      
+                      {% if goal.category %}
+                        <small class="badge badge-light">
+                          <i class="fas fa-tag"></i> {{ goal.category }}
+                        </small>
+                      {% endif %}
+                    </div>
+                    
+                    <div class="text-center mt-2">
+                      <span class="badge badge-secondary"><i class="fas fa-ban"></i> Meta cancelada</span>
+                    </div>
+                  </div>
+                  <div class="card-footer">
+                    <div class="btn-group">
+                      <a href="{{ url_for('goals.details', goal_id=goal.id) }}" class="btn btn-sm btn-info">
+                        <i class="fas fa-info-circle"></i> Detalhes
+                      </a>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Exclusão -->
+              <div class="modal fade" id="deleteModal{{ goal.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ goal.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ goal.id }}">Confirmar Exclusão</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Tem certeza que deseja excluir esta meta cancelada?</p>
+                      <p><strong>Título:</strong> {{ goal.title }}</p>
+                      <p><strong>Progresso:</strong> R$ {{ "%.2f"|format(goal.current_amount) }} / R$ {{ "%.2f"|format(goal.target_amount) }} ({{ "%.1f"|format(goal.progress_percentage) }}%)</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('goals.delete', goal_id=goal.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            {% endfor %}
+          </div>
+        {% else %}
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Não há metas canceladas.
+          </div>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+{% endblock %}

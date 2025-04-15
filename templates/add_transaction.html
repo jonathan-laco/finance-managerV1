@@ -1,0 +1,252 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Adicionar Transação{% endblock %}
+{% block breadcrumb %}Adicionar Transação{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6">
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Nova Transação</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+    <form method="post" action="{{ url_for('transactions.add') }}" enctype="multipart/form-data">
+      <div class="card-body">
+        <div class="form-group">
+          <label>Tipo de Transação</label>
+          <div class="custom-control custom-radio">
+            <input class="custom-control-input" type="radio" id="type_income" name="type" value="receita" checked>
+            <label for="type_income" class="custom-control-label">Receita</label>
+          </div>
+          <div class="custom-control custom-radio">
+            <input class="custom-control-input" type="radio" id="type_expense" name="type" value="despesa">
+            <label for="type_expense" class="custom-control-label">Despesa</label>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="account_id">Conta</label>
+          <select class="form-control" id="account_id" name="account_id" required>
+            <option value="">Selecione uma conta</option>
+            {% for account in accounts %}
+            <option value="{{ account.id }}">{{ account.name }} (R$ {{ "%.2f"|format(account.balance) }})</option>
+            {% endfor %}
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <label for="amount">Valor</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">R$</span>
+            </div>
+            <input type="number" class="form-control" id="amount" name="amount" placeholder="0.00" step="0.01" min="0.01" required>
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="description">Descrição</label>
+          <input type="text" class="form-control" id="description" name="description" placeholder="Ex: Salário, Aluguel, etc." required>
+        </div>
+        
+        <div class="form-group">
+          <label for="category_id">Categoria</label>
+          <select class="form-control" id="category_id" name="category_id" required>
+            <option value="">Selecione uma categoria</option>
+            <optgroup label="Receitas" id="income_categories">
+              {% for category in income_categories %}
+              <option value="{{ category.id }}" data-color="{{ category.color }}">{{ category.name }}</option>
+              {% endfor %}
+            </optgroup>
+            <optgroup label="Despesas" id="expense_categories" style="display: none;">
+              {% for category in expense_categories %}
+              <option value="{{ category.id }}" data-color="{{ category.color }}">{{ category.name }}</option>
+              {% endfor %}
+            </optgroup>
+          </select>
+        </div>
+        
+        <div class="form-group">
+          <div class="custom-control custom-checkbox">
+            <input class="custom-control-input" type="checkbox" id="is_confirmed" name="is_confirmed" checked>
+            <label for="is_confirmed" class="custom-control-label">Transação confirmada</label>
+          </div>
+          <small class="form-text text-muted">Marque esta opção se a transação já foi efetivada. Caso contrário, será registrada como pendente.</small>
+        </div>
+        
+        {% if is_mei %}
+        
+        <div id="invoice_fields">
+          <hr>
+          <h5>Nota Fiscal</h5>
+          
+          <div class="form-group">
+            <label for="invoice_file">Arquivo da Nota Fiscal</label>
+            <div class="input-group">
+              <div class="custom-file">
+                <input type="file" class="custom-file-input" id="invoice_file" name="invoice_file" accept=".pdf,.jpg,.jpeg,.png">
+                <label class="custom-file-label" for="invoice_file">Escolher arquivo</label>
+              </div>
+            </div>
+            <small class="form-text text-muted">Formatos aceitos: PDF, JPG, JPEG, PNG</small>
+          </div>
+          
+          <div class="form-group">
+            <label for="invoice_number">Número da Nota Fiscal</label>
+            <input type="text" class="form-control" id="invoice_number" name="invoice_number" placeholder="Ex: NF-e 12345">
+          </div>
+          
+          <div class="form-group">
+            <label for="invoice_date">Data da Nota Fiscal</label>
+            <input type="date" class="form-control" id="invoice_date" name="invoice_date">
+          </div>
+        </div>
+        {% endif %}
+      </div>
+      <!-- /.card-body -->
+
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ url_for('transactions.index') }}" class="btn btn-default float-right">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+
+<div class="col-md-6">
+  <div class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Informações</h3>
+    </div>
+    <div class="card-body">
+      <div class="callout callout-info">
+        <h5>Tipos de Transações</h5>
+        <p>Registre suas receitas e despesas para manter o controle das suas finanças:</p>
+        <ul>
+          <li><strong>Receitas:</strong> Salários, rendimentos, vendas, etc.</li>
+          <li><strong>Despesas:</strong> Contas, compras, serviços, etc.</li>
+        </ul>
+      </div>
+      
+      <div class="callout callout-warning">
+        <h5>Transações Pendentes</h5>
+        <p>Você pode registrar transações pendentes (não confirmadas) para:</p>
+        <ul>
+          <li>Acompanhar pagamentos futuros</li>
+          <li>Registrar receitas esperadas</li>
+          <li>Planejar seu fluxo de caixa</li>
+        </ul>
+        <p>Transações pendentes não afetam o saldo da conta até serem confirmadas.</p>
+      </div>
+      
+      {% if is_mei %}
+      <div class="callout callout-success">
+        <h5>Transações MEI</h5>
+        <p>Marque a opção "Transação MEI" para:</p>
+        <ul>
+          <li>Separar transações pessoais das relacionadas ao seu negócio</li>
+          <li>Facilitar a declaração de impostos</li>
+          <li>Anexar notas fiscais às transações</li>
+          <li>Manter um controle financeiro organizado do seu MEI</li>
+        </ul>
+      </div>
+      {% else %}
+      <div class="callout callout-success">
+        <h5>Dicas</h5>
+        <ul>
+          <li>Categorize corretamente suas transações para gerar relatórios precisos</li>
+          <li>Marque como "não confirmada" transações futuras ou pendentes</li>
+          <li>Transações confirmadas atualizam automaticamente o saldo da conta</li>
+        </ul>
+      </div>
+      {% endif %}
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+</div>
+<!-- /.row -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Alternar categorias com base no tipo de transação
+document.addEventListener('DOMContentLoaded', function() {
+  const typeIncome = document.getElementById('type_income');
+  const typeExpense = document.getElementById('type_expense');
+  const incomeCategories = document.getElementById('income_categories');
+  const expenseCategories = document.getElementById('expense_categories');
+  const categorySelect = document.getElementById('category_id');
+  
+  function updateCategories() {
+    // Limpar seleção atual
+    categorySelect.value = '';
+    
+    if (typeIncome.checked) {
+      incomeCategories.style.display = '';
+      expenseCategories.style.display = 'none';
+      
+      // Desabilitar opções de despesa
+      for (let i = 0; i < categorySelect.options.length; i++) {
+        const option = categorySelect.options[i];
+        if (option.parentNode.id === 'expense_categories') {
+          option.disabled = true;
+        } else {
+          option.disabled = false;
+        }
+      }
+    } else {
+      incomeCategories.style.display = 'none';
+      expenseCategories.style.display = '';
+      
+      // Desabilitar opções de receita
+      for (let i = 0; i < categorySelect.options.length; i++) {
+        const option = categorySelect.options[i];
+        if (option.parentNode.id === 'income_categories') {
+          option.disabled = true;
+        } else {
+          option.disabled = false;
+        }
+      }
+    }
+  }
+  
+  typeIncome.addEventListener('change', updateCategories);
+  typeExpense.addEventListener('change', updateCategories);
+  
+  // Inicializar
+  updateCategories();
+  
+  // Destacar a categoria selecionada com sua cor
+  categorySelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.value) {
+      const color = selectedOption.getAttribute('data-color');
+      this.style.borderColor = color;
+      this.style.boxShadow = `0 0 0 0.2rem ${color}40`;
+    } else {
+      this.style.borderColor = '';
+      this.style.boxShadow = '';
+    }
+  });
+  
+  {% if is_mei %}
+  // Mostrar/ocultar campos de nota fiscal
+  const invoiceFields = document.getElementById('invoice_fields');
+  invoiceFields.style.display = 'block';
+  
+  // Atualizar nome do arquivo selecionado
+  $('.custom-file-input').on('change', function() {
+    var fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

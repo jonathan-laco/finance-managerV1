@@ -1,0 +1,148 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Configurações{% endblock %}
+{% block breadcrumb %}Configurações{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6">
+  <!-- Atualizar Perfil -->
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Atualizar Perfil</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+    <form method="post" action="{{ url_for('settings.index') }}" enctype="multipart/form-data">
+      <input type="hidden" name="action" value="update_profile">
+      <div class="card-body">
+        <div class="form-group">
+          <label for="username">Nome de Usuário</label>
+          <input type="text" class="form-control" id="username" value="{{ current_user.username }}" disabled>
+          <small class="form-text text-muted">O nome de usuário não pode ser alterado.</small>
+        </div>
+        <div class="form-group">
+          <label for="full_name">Nome Completo</label>
+          <input type="text" class="form-control" id="full_name" name="full_name" value="{{ current_user.full_name or '' }}">
+        </div>
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" class="form-control" id="email" name="email" value="{{ current_user.email }}" required>
+        </div>
+        <div class="form-group">
+          <label for="profile_pic">Foto de Perfil</label>
+          <div class="input-group">
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="profile_pic" name="profile_pic" accept="image/*">
+              <label class="custom-file-label" for="profile_pic">Escolher arquivo</label>
+            </div>
+          </div>
+        </div>
+        <div class="form-group">
+          <div class="text-center">
+            <img src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) }}" class="profile-user-img img-fluid img-circle" alt="Foto de Perfil">
+          </div>
+        </div>
+      </div>
+      <!-- /.card-body -->
+
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Atualizar Perfil</button>
+      </div>
+    </form>
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+
+<div class="col-md-6">
+  <!-- Alterar Senha -->
+  <div class="card card-warning">
+    <div class="card-header">
+      <h3 class="card-title">Alterar Senha</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+    <form method="post" action="{{ url_for('settings.index') }}">
+      <input type="hidden" name="action" value="change_password">
+      <div class="card-body">
+        <div class="form-group">
+          <label for="current_password">Senha Atual</label>
+          <input type="password" class="form-control" id="current_password" name="current_password" required>
+        </div>
+        <div class="form-group">
+          <label for="new_password">Nova Senha</label>
+          <input type="password" class="form-control" id="new_password" name="new_password" required>
+        </div>
+        <div class="form-group">
+          <label for="confirm_password">Confirmar Nova Senha</label>
+          <input type="password" class="form-control" id="confirm_password" name="confirm_password" required>
+        </div>
+      </div>
+      <!-- /.card-body -->
+
+      <div class="card-footer">
+        <button type="submit" class="btn btn-warning">Alterar Senha</button>
+      </div>
+    </form>
+  </div>
+  <!-- /.card -->
+  
+  <!-- Preferências do Sistema -->
+  <div class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Preferências do Sistema</h3>
+    </div>
+    <div class="card-body">
+      <div class="form-group">
+        <label>Tema</label>
+        <div class="d-flex">
+          <a href="{{ url_for('settings.toggle_theme') }}" class="btn {{ 'btn-primary' if current_user.theme == 'light' else 'btn-outline-primary' }} mr-2">
+            <i class="fas fa-sun"></i> Modo Claro
+          </a>
+          <a href="{{ url_for('settings.toggle_theme') }}" class="btn {{ 'btn-primary' if current_user.theme == 'dark' else 'btn-outline-primary' }}">
+            <i class="fas fa-moon"></i> Modo Escuro
+          </a>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label>Layout do Dashboard</label>
+        <div>
+          <a href="{{ url_for('dashboard.index') }}" class="btn btn-info">
+            <i class="fas fa-columns"></i> Personalizar Layout
+          </a>
+        </div>
+        <small class="form-text text-muted">Você pode arrastar e redimensionar os cards no dashboard para personalizar seu layout.</small>
+      </div>
+      
+      <div class="form-group">
+        <label>Categorias</label>
+        <div>
+          <a href="{{ url_for('categories.index') }}" class="btn btn-info">
+            <i class="fas fa-tags"></i> Gerenciar Categorias
+          </a>
+        </div>
+        <small class="form-text text-muted">Adicione, edite ou desative categorias para organizar suas transações.</small>
+      </div>
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+</div>
+<!-- /.row -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function() {
+  // Atualizar nome do arquivo selecionado
+  $('.custom-file-input').on('change', function() {
+    var fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+  });
+});
+</script>
+{% endblock %}

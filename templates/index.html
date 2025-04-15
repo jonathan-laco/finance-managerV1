@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sistema Financeiro Pessoal | Bem-vindo</title>
+
+<!-- Google Font: Source Sans Pro -->
+<link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,400i,700&display=fallback">
+<!-- Font Awesome -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+<!-- AdminLTE 3 -->
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/css/adminlte.min.css">
+</head>
+<body class="hold-transition dark-mode layout-top-nav">
+<div class="wrapper">
+
+<!-- Navbar -->
+<nav class="main-header navbar navbar-expand-md navbar-dark">
+  <div class="container">
+    <a href="{{ url_for('auth.index') }}" class="navbar-brand">
+      <i class="fas fa-wallet mr-2"></i>
+      <span class="brand-text font-weight-light">Finanças Pessoais</span>
+    </a>
+
+    <button class="navbar-toggler order-1" type="button" data-toggle="collapse" data-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation">
+      <span class="navbar-toggler-icon"></span>
+    </button>
+
+    <div class="collapse navbar-collapse order-3" id="navbarCollapse">
+      <!-- Right navbar links -->
+      <ul class="navbar-nav ml-auto">
+        <li class="nav-item">
+          <a href="{{ url_for('auth.login') }}" class="nav-link">Login</a>
+        </li>
+        <li class="nav-item">
+          <a href="{{ url_for('auth.register') }}" class="nav-link">Registrar</a>
+        </li>
+      </ul>
+    </div>
+  </div>
+</nav>
+<!-- /.navbar -->
+
+<!-- Content Wrapper. Contains page content -->
+<div class="content-wrapper">
+  <!-- Content Header (Page header) -->
+  <div class="content-header">
+    <div class="container">
+      <div class="row mb-2">
+        <div class="col-sm-6">
+          <h1 class="m-0">Bem-vindo ao Sistema de Gerenciamento Financeiro Pessoal</h1>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.content-header -->
+
+  <!-- Main content -->
+  <div class="content">
+    <div class="container">
+      <div class="row">
+        <div class="col-lg-6">
+          <div class="card card-primary card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Gerencie suas finanças com facilidade</h5>
+            </div>
+            <div class="card-body">
+              <p class="card-text">
+                Nosso sistema de gerenciamento financeiro pessoal permite que você:
+              </p>
+              <ul>
+                <li>Acompanhe suas contas bancárias</li>
+                <li>Registre receitas e despesas</li>
+                <li>Visualize relatórios detalhados</li>
+                <li>Analise seus gastos por categoria</li>
+                <li>Mantenha o controle total das suas finanças</li>
+              </ul>
+              <div class="mt-4">
+                <a href="{{ url_for('auth.register') }}" class="btn btn-primary">Criar uma conta</a>
+                <a href="{{ url_for('auth.login') }}" class="btn btn-default ml-2">Já tenho uma conta</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        <div class="col-lg-6">
+          <div class="card card-info card-outline">
+            <div class="card-header">
+              <h5 class="card-title">Recursos principais</h5>
+            </div>
+            <div class="card-body">
+              <div class="row">
+                <div class="col-md-6">
+                  <div class="info-box bg-gradient-info">
+                    <span class="info-box-icon"><i class="fas fa-university"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Contas Bancárias</span>
+                      <span class="info-box-number">Múltiplas contas</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-box bg-gradient-success">
+                    <span class="info-box-icon"><i class="fas fa-exchange-alt"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Transações</span>
+                      <span class="info-box-number">Receitas e despesas</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div class="row mt-3">
+                <div class="col-md-6">
+                  <div class="info-box bg-gradient-warning">
+                    <span class="info-box-icon"><i class="fas fa-chart-pie"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Relatórios</span>
+                      <span class="info-box-number">Gráficos e análises</span>
+                    </div>
+                  </div>
+                </div>
+                <div class="col-md-6">
+                  <div class="info-box bg-gradient-danger">
+                    <span class="info-box-icon"><i class="fas fa-lock"></i></span>
+                    <div class="info-box-content">
+                      <span class="info-box-text">Segurança</span>
+                      <span class="info-box-number">Dados protegidos</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.content -->
+</div>
+<!-- /.content-wrapper -->
+
+<!-- Main Footer -->
+<footer class="main-footer">
+  <div class="container">
+    <div class="float-right d-none d-sm-inline">
+      Versão 1.2.0
+    </div>
+    <strong>Sistema de Gerenciamento Financeiro Pessoal</strong>
+  </div>
+</footer>
+</div>
+<!-- ./wrapper -->
+
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+<!-- Bootstrap 4 -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@4.6.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- AdminLTE App -->
+<script src="https://cdn.jsdelivr.net/npm/admin-lte@3.2/dist/js/adminlte.min.js"></script>
+</body>
+</html>

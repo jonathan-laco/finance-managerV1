@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Adicionar Conta Bancária{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6">
+  <div class="card card-primary">
+    <div class="card-header">
+      <h3 class="card-title">Nova Conta Bancária</h3>
+    </div>
+    <!-- /.card-header -->
+    <!-- form start -->
+    <form method="post" action="{{ url_for('accounts.add') }}">
+      <div class="card-body">
+        <div class="form-group">
+          <label for="name">Nome da Conta</label>
+          <input type="text" class="form-control" id="name" name="name" placeholder="Ex: Banco do Brasil, Nubank, etc." required>
+        </div>
+        <div class="form-group">
+          <label for="balance">Saldo Inicial</label>
+          <div class="input-group">
+            <div class="input-group-prepend">
+              <span class="input-group-text">R$</span>
+            </div>
+            <input type="number" class="form-control" id="balance" name="balance" placeholder="0.00" step="0.01" min="0">
+          </div>
+        </div>
+      </div>
+      <!-- /.card-body -->
+
+      <div class="card-footer">
+        <button type="submit" class="btn btn-primary">Salvar</button>
+        <a href="{{ url_for('accounts.index') }}" class="btn btn-default float-right">Cancelar</a>
+      </div>
+    </form>
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+
+<div class="col-md-6">
+  <div class="card card-info">
+    <div class="card-header">
+      <h3 class="card-title">Informações</h3>
+    </div>
+    <div class="card-body">
+      <p>Adicione suas contas bancárias para começar a gerenciar suas finanças. Você pode adicionar:</p>
+      <ul>
+        <li>Contas correntes</li>
+        <li>Contas poupança</li>
+        <li>Carteiras digitais</li>
+        <li>Dinheiro em espécie</li>
+        <li>Investimentos</li>
+      </ul>
+      <p>O saldo inicial deve refletir o valor atual disponível na conta.</p>
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+<!-- /.col -->
+</div>
+<!-- /.row -->
+{% endblock %}

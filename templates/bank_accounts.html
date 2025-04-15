@@ -1,0 +1,105 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Contas Bancárias{% endblock %}
+
+{% block content %}
+<style>
+.modal-body p, .modal-body div {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.modal-content {
+  max-width: 100%;
+}
+
+.alert {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+</style>
+<div class="row">
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Suas Contas Bancárias</h3>
+      <div class="card-tools">
+        <a href="{{ url_for('accounts.add') }}" class="btn btn-primary btn-sm">
+          <i class="fas fa-plus"></i> Nova Conta
+        </a>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body table-responsive p-0">
+      <table class="table table-hover text-nowrap">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Saldo</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for account in accounts %}
+          <tr>
+            <td>{{ account.id }}</td>
+            <td>{{ account.name }}</td>
+            <td>R$ {{ "%.2f"|format(account.balance) }}</td>
+            <td>
+              <div class="btn-group">
+                <a href="{{ url_for('transactions.index', account=account.id) }}" class="btn btn-info btn-sm">
+                  <i class="fas fa-exchange-alt"></i> Transações
+                </a>
+                <a href="{{ url_for('accounts.edit', account_id=account.id) }}" class="btn btn-warning btn-sm">
+                  <i class="fas fa-edit"></i> Editar
+                </a>
+                <button type="button" class="btn btn-danger btn-sm" data-toggle="modal" data-target="#deleteModal{{ account.id }}">
+                  <i class="fas fa-trash"></i> Excluir
+                </button>
+              </div>
+              
+              <!-- Modal de Exclusão -->
+              <div class="modal fade" id="deleteModal{{ account.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ account.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ account.id }}">Confirmar Exclusão</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Tem certeza que deseja excluir a conta <strong>{{ account.name }}</strong>?</p>
+                      <p>Esta ação não poderá ser desfeita.</p>
+                      <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Você só poderá excluir esta conta se não houver transações associadas a ela.
+                      </div>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('accounts.delete', account_id=account.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="4" class="text-center">Nenhuma conta cadastrada</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+</div>
+{% endblock %}

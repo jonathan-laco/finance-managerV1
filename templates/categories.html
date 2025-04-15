@@ -1,0 +1,271 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Categorias{% endblock %}
+{% block breadcrumb %}Categorias{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6 col-sm-12 mb-4">
+<!-- Categorias de Receitas -->
+<div class="card card-success">
+  <div class="card-header">
+    <h3 class="card-title">Categorias de Receitas</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addIncomeCategory">
+        <i class="fas fa-plus"></i> Nova Categoria
+      </button>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th style="width: 10px">#</th>
+            <th>Nome</th>
+            <th>Cor</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in income_categories %}
+          <tr>
+            <td>{{ category.id }}</td>
+            <td>{{ category.name }}</td>
+            <td>
+              <span class="badge" style="background-color: {{ category.color }}; width: 30px; height: 20px;">&nbsp;</span>
+            </td>
+            <td>
+              {% if category.is_active %}
+              <span class="badge bg-success">Ativa</span>
+              {% else %}
+              <span class="badge bg-secondary">Inativa</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="btn-group">
+                <button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target="#editCategory{{ category.id }}">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                <a href="{{ url_for('categories.toggle', category_id=category.id) }}" class="btn btn-xs {{ 'btn-secondary' if category.is_active else 'btn-success' }}">
+                  <i class="fas {{ 'fa-times' if category.is_active else 'fa-check' }}"></i> {{ 'Desativar' if category.is_active else 'Ativar' }}
+                </a>
+              </div>
+              
+              <!-- Modal de Edição -->
+              <div class="modal fade" id="editCategory{{ category.id }}" tabindex="-1" role="dialog" aria-labelledby="editCategoryLabel{{ category.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="editCategoryLabel{{ category.id }}">Editar Categoria</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="{{ url_for('categories.update', category_id=category.id) }}" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label for="name{{ category.id }}">Nome</label>
+                          <input type="text" class="form-control" id="name{{ category.id }}" name="name" value="{{ category.name }}" required>
+                        </div>
+                        <div class="form-group">
+                          <label for="color{{ category.id }}">Cor</label>
+                          <input type="text" class="form-control color-picker" id="color{{ category.id }}" name="color" value="{{ category.color }}">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center">Nenhuma categoria de receita cadastrada</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<div class="col-md-6 col-sm-12">
+<!-- Categorias de Despesas -->
+<div class="card card-danger">
+  <div class="card-header">
+    <h3 class="card-title">Categorias de Despesas</h3>
+    <div class="card-tools">
+      <button type="button" class="btn btn-primary btn-sm" data-toggle="modal" data-target="#addExpenseCategory">
+        <i class="fas fa-plus"></i> Nova Categoria
+      </button>
+    </div>
+  </div>
+  <div class="card-body p-0">
+    <div class="table-responsive">
+      <table class="table table-striped">
+        <thead>
+          <tr>
+            <th style="width: 10px">#</th>
+            <th>Nome</th>
+            <th>Cor</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for category in expense_categories %}
+          <tr>
+            <td>{{ category.id }}</td>
+            <td>{{ category.name }}</td>
+            <td>
+              <span class="badge" style="background-color: {{ category.color }}; width: 30px; height: 20px;">&nbsp;</span>
+            </td>
+            <td>
+              {% if category.is_active %}
+              <span class="badge bg-success">Ativa</span>
+              {% else %}
+              <span class="badge bg-secondary">Inativa</span>
+              {% endif %}
+            </td>
+            <td>
+              <div class="btn-group">
+                <button type="button" class="btn btn-xs btn-warning" data-toggle="modal" data-target="#editCategory{{ category.id }}">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                <a href="{{ url_for('categories.toggle', category_id=category.id) }}" class="btn btn-xs {{ 'btn-secondary' if category.is_active else 'btn-success' }}">
+                  <i class="fas {{ 'fa-times' if category.is_active else 'fa-check' }}"></i> {{ 'Desativar' if category.is_active else 'Ativar' }}
+                </a>
+              </div>
+              
+              <!-- Modal de Edição -->
+              <div class="modal fade" id="editCategory{{ category.id }}" tabindex="-1" role="dialog" aria-labelledby="editCategoryLabel{{ category.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="editCategoryLabel{{ category.id }}">Editar Categoria</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="{{ url_for('categories.update', category_id=category.id) }}" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label for="name{{ category.id }}">Nome</label>
+                          <input type="text" class="form-control" id="name{{ category.id }}" name="name" value="{{ category.name }}" required>
+                        </div>
+                        <div class="form-group">
+                          <label for="color{{ category.id }}">Cor</label>
+                          <input type="text" class="form-control color-picker" id="color{{ category.id }}" name="color" value="{{ category.color }}">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center">Nenhuma categoria de despesa cadastrada</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+</div>
+
+<!-- Modal para adicionar categoria de receita -->
+<div class="modal fade" id="addIncomeCategory" tabindex="-1" role="dialog" aria-labelledby="addIncomeCategoryLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="addIncomeCategoryLabel">Nova Categoria de Receita</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form action="{{ url_for('categories.add') }}" method="post">
+    <div class="modal-body">
+      <input type="hidden" name="type" value="receita">
+      <div class="form-group">
+        <label for="name">Nome</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="color">Cor</label>
+        <input type="text" class="form-control color-picker" id="color" name="color" value="#28a745">
+      </div>
+    </div>  class="form-control color-picker" id="color" name="color" value="#28a745">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
+  </form>
+</div>
+</div>
+</div>
+
+<!-- Modal para adicionar categoria de despesa -->
+<div class="modal fade" id="addExpenseCategory" tabindex="-1" role="dialog" aria-labelledby="addExpenseCategoryLabel" aria-hidden="true">
+<div class="modal-dialog" role="document">
+<div class="modal-content">
+  <div class="modal-header">
+    <h5 class="modal-title" id="addExpenseCategoryLabel">Nova Categoria de Despesa</h5>
+    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+      <span aria-hidden="true">&times;</span>
+    </button>
+  </div>
+  <form action="{{ url_for('categories.add') }}" method="post">
+    <div class="modal-body">
+      <input type="hidden" name="type" value="despesa">
+      <div class="form-group">
+        <label for="name">Nome</label>
+        <input type="text" class="form-control" id="name" name="name" required>
+      </div>
+      <div class="form-group">
+        <label for="color">Cor</label>
+        <input type="text" class="form-control color-picker" id="color" name="color" value="#dc3545">
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+      <button type="submit" class="btn btn-primary">Salvar</button>
+    </div>
+  </form>
+</div>
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+$(function() {
+// Inicializar o seletor de cores
+$('.color-picker').spectrum({
+  preferredFormat: "hex",
+  showInput: true,
+  showPalette: true,
+  palette: [
+    ["#f56954", "#00a65a", "#f39c12", "#00c0ef", "#3c8dbc", "#d2d6de"],
+    ["#e83e8c", "#6f42c1", "#fd7e14", "#20c997", "#6c757d", "#343a40"]
+  ]
+});
+});
+</script>
+{% endblock %}

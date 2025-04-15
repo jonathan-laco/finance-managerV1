@@ -1,0 +1,859 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Relatório MEI{% endblock %}
+{% block breadcrumb %}Relatório MEI{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  body {
+    font-size: 12pt;
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .report-header h1 {
+    font-size: 18pt;
+    margin-bottom: 5px;
+  }
+  .report-header p {
+    font-size: 10pt;
+    color: #666;
+  }
+  .report-summary {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+  }
+  .report-table th {
+    background-color: #f4f4f4 !important;
+    color: #333 !important;
+  }
+  .report-footer {
+    margin-top: 30px;
+    font-size: 10pt;
+    text-align: center;
+    color: #666;
+  }
+  .pagination-content {
+    display: none !important;
+  }
+  .all-transactions {
+    display: block !important;
+  }
+  .paginated-transactions {
+    display: none !important;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-full-width {
+    width: 100% !important;
+  }
+  .annual-table {
+    width: 100% !important;
+    display: table !important;
+    border-collapse: collapse !important;
+  }
+  .annual-table th, .annual-table td {
+    border: 1px solid #ddd !important;
+    padding: 8px !important;
+  }
+}
+.print-only {
+  display: none;
+}
+.all-transactions {
+  display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros - Apenas visíveis na tela, não na impressão -->
+<div class="row mb-3 no-print">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Filtros</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <form method="get" action="{{ url_for('reports.mei_report') }}" class="row">
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Período:</label>
+              <select class="form-control" name="period" id="period-select">
+                <option value="month" {% if request.args.get('period') != 'year' %}selected{% endif %}>Mensal</option>
+                <option value="year" {% if request.args.get('period') == 'year' %}selected{% endif %}>Anual</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2" id="month-select-container" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Mês:</label>
+              <select class="form-control" name="month">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {% if current_month == i %}selected{% endif %}>
+                  {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][i-1] }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Ano:</label>
+              <select class="form-control" name="year">
+                {% for i in range(current_year-5, current_year+1) %}
+                <option value="{{ i }}" {% if current_year == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Conta:</label>
+              <select class="form-control" name="account">
+                <option value="">Todas as contas</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if request.args.get('account')|int == account.id %}selected{% endif %}>
+                  {{ account.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Tipo:</label>
+              <select class="form-control" name="type">
+                <option value="">Todos os tipos</option>
+                <option value="receita" {% if request.args.get('type') == 'receita' %}selected{% endif %}>Receitas</option>
+                <option value="despesa" {% if request.args.get('type') == 'despesa' %}selected{% endif %}>Despesas</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Categoria:</label>
+              <select class="form-control" name="category">
+                <option value="">Todas as categorias</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Nota Fiscal:</label>
+              <select class="form-control" name="has_invoice">
+                <option value="">Todas</option>
+                <option value="1" {% if request.args.get('has_invoice') == '1' %}selected{% endif %}>Com Nota Fiscal</option>
+                <option value="0" {% if request.args.get('has_invoice') == '0' %}selected{% endif %}>Sem Nota Fiscal</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Itens por página:</label>
+              <select class="form-control" name="per_page">
+                <option value="10" {% if request.args.get('per_page', '20')|int == 10 %}selected{% endif %}>10 itens</option>
+                <option value="20" {% if request.args.get('per_page', '20')|int == 20 %}selected{% endif %}>20 itens</option>
+                <option value="50" {% if request.args.get('per_page', '20')|int == 50 %}selected{% endif %}>50 itens</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-12 mt-2">
+            <button type="submit" class="btn btn-info">Filtrar</button>
+            <a href="{{ url_for('reports.mei_report') }}" class="btn btn-default">Limpar Filtros</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Botões de ação - Apenas visíveis na tela, não na impressão -->
+<div class="row mb-3 no-print">
+  <div class="col-md-12 text-right">
+    <button type="button" class="btn btn-primary" onclick="printReport()">
+      <i class="fas fa-print"></i> Imprimir Relatório (Tabela)
+    </button>
+    <button type="button" class="btn btn-success" onclick="exportToExcel()">
+      <i class="fas fa-file-excel"></i> Exportar para Excel
+    </button>
+    <button type="button" class="btn btn-info" onclick="window.print()">
+      <i class="fas fa-print"></i> Imprimir Relatório Completo
+    </button>
+  </div>
+</div>
+
+<!-- Cabeçalho do Relatório - Visível apenas na impressão -->
+<div class="report-header print-only">
+  <h1>Relatório Financeiro MEI</h1>
+  <p>{{ current_user.mei_company_name }} - CNPJ: {{ current_user.mei_cnpj }}</p>
+  {% if request.args.get('period') == 'year' %}
+  <p>Período: Ano {{ current_year }}</p>
+  {% else %}
+  <p>Período: {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][current_month-1] }}/{{ current_year }}</p>
+  {% endif %}
+  <p>Emitido em: {{ current_date }}</p>
+</div>
+
+<!-- Resumo Financeiro -->
+<div class="row report-summary">
+  <div class="col-md-3">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_income) }}</h3>
+        <p>Total de Receitas</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-arrow-up"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_expense) }}</h3>
+        <p>Total de Despesas</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-arrow-down"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_income - total_expense) }}</h3>
+        <p>Saldo do Período</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="small-box bg-warning">
+      <div class="inner">
+        <h3>{{ total_transactions_month }}</h3>
+        <p>Transações MEI deste {% if request.args.get('period') == 'year' %}ano{% else %}mês{% endif %}</p>
+        <small>Total geral: {{ total_all_transactions }}</small>
+      </div>
+      <div class="icon">
+        <i class="fas fa-exchange-alt"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if annual_income >= 80000 %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="alert alert-danger">
+      <h5><i class="icon fas fa-exclamation-triangle"></i> Atenção! Limite de faturamento MEI próximo do limite!</h5>
+      <p>Seu faturamento anual de <strong>R$ {{ "%.2f"|format(annual_income) }}</strong> está próximo ou ultrapassou o limite de R$ 81.000,00 para MEI.</p>
+      <p>Considere consultar um contador para avaliar a necessidade de mudança de regime tributário.</p>
+    </div>
+  </div>
+</div>
+{% elif annual_income >= 70000 %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="alert alert-warning">
+      <h5><i class="icon fas fa-exclamation-triangle"></i> Atenção! Faturamento MEI se aproximando do limite!</h5>
+      <p>Seu faturamento anual de <strong>R$ {{ "%.2f"|format(annual_income) }}</strong> está se aproximando do limite de R$ 81.000,00 para MEI.</p>
+      <p>Monitore suas receitas com atenção nos próximos meses.</p>
+    </div>
+  </div>
+</div>
+{% endif %}
+
+{% if request.args.get('period') == 'year' %}
+<!-- Relatório Anual -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Relatório Anual MEI - {{ current_year }}</h3>
+      </div>
+      <div class="card-body">
+        <!-- Gráfico - Visível apenas na tela -->
+        <div class="chart no-print">
+          <canvas id="annualChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+        </div>
+        
+        <!-- Tabela anual - Visível na tela e na impressão -->
+        <div class="table-responsive mt-4">
+          <table class="table table-bordered table-striped annual-table" id="annual-table">
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th>Receitas</th>
+                <th>Despesas</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for month_data in annual_data %}
+              <tr>
+                <td>{{ month_data.month_name }}</td>
+                <td class="text-success">R$ {{ "%.2f"|format(month_data.income) }}</td>
+                <td class="text-danger">R$ {{ "%.2f"|format(month_data.expense) }}</td>
+                <td class="{% if month_data.income - month_data.expense >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  R$ {{ "%.2f"|format(month_data.income - month_data.expense) }}
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="table-active font-weight-bold">
+                <td>Total Anual</td>
+                <td class="text-success">R$ {{ "%.2f"|format(annual_income) }}</td>
+                <td class="text-danger">R$ {{ "%.2f"|format(annual_expense) }}</td>
+                <td class="{% if annual_income - annual_expense >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  R$ {{ "%.2f"|format(annual_income - annual_expense) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<!-- Transações do Período - Versão paginada (visível apenas na tela) -->
+<div class="row paginated-transactions">
+  <div class="col-12 print-full-width">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Transações MEI do Período</h3>
+        <div class="card-tools no-print">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap report-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Nota Fiscal</th>
+              <th>Status</th>
+              <th class="no-print">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in transactions %}
+            <tr>
+              <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>
+                {% for category in current_user.categories %}
+                  {% if category.id == transaction.category_id %}
+                    <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                      {{ category.name }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% for account in accounts %}
+                  {% if account.id == transaction.account_id %}
+                    {{ account.name }}
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% if transaction.type == 'receita' %}
+                <span class="badge bg-success">Receita</span>
+                {% else %}
+                <span class="badge bg-danger">Despesa</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+              <td>
+                {% if transaction.has_invoice %}
+                <span class="badge bg-info">
+                  <i class="fas fa-file-invoice"></i> Sim
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">
+                  <i class="fas fa-times"></i> Não
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if transaction.status == 'confirmado' %}
+                <span class="badge bg-success">Confirmado</span>
+                {% elif transaction.status == 'pendente' %}
+                <span class="badge bg-warning">Pendente</span>
+                {% else %}
+                <span class="badge bg-secondary">Cancelado</span>
+                {% endif %}
+              </td>
+              <td class="no-print">
+                <div class="btn-group">
+                  <a href="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" class="btn btn-xs btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                  </a>
+                  {% if transaction.has_invoice %}
+                  <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" class="btn btn-xs btn-primary">
+                    <i class="fas fa-file-download"></i> Nota Fiscal
+                  </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="9" class="text-center">Nenhuma transação MEI no período</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transações do Período - Versão completa (visível apenas na impressão) -->
+<div class="row all-transactions">
+  <div class="col-12 print-full-width">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Transações MEI do Período</h3>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap report-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Nota Fiscal</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in all_transactions %}
+            <tr>
+              <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>
+                {% for category in current_user.categories %}
+                  {% if category.id == transaction.category_id %}
+                    <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                      {{ category.name }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% for account in accounts %}
+                  {% if account.id == transaction.account_id %}
+                    {{ account.name }}
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% if transaction.type == 'receita' %}
+                <span class="badge bg-success">Receita</span>
+                {% else %}
+                <span class="badge bg-danger">Despesa</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+              <td>
+                {% if transaction.has_invoice %}
+                <span class="badge bg-info">
+                  <i class="fas fa-file-invoice"></i> Sim
+                </span>
+                {% else %}
+                <span class="badge bg-secondary">
+                  <i class="fas fa-times"></i> Não
+                </span>
+                {% endif %}
+              </td>
+              <td>
+                {% if transaction.status == 'confirmado' %}
+                <span class="badge bg-success">Confirmado</span>
+                {% elif transaction.status == 'pendente' %}
+                <span class="badge bg-warning">Pendente</span>
+                {% else %}
+                <span class="badge bg-secondary">Cancelado</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="text-center">Nenhuma transação MEI no período</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Adicionar paginação -->
+{% if pagination and pagination.pages > 1 %}
+<div class="d-flex justify-content-center mt-4 no-print pagination-content">
+  <ul class="pagination">
+  {% if pagination.has_prev %}
+    <li class="page-item">
+      {% set args = request.args.copy() %}
+      {% set _ = args.pop('page', None) %}
+      <a class="page-link" href="{{ url_for('reports.mei_report', page=pagination.prev_num, **args) }}">&laquo;</a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">&laquo;</span>
+    </li>
+  {% endif %}
+
+  {% for page in pagination.iter_pages() %}
+    {% if page %}
+      {% if page != pagination.page %}
+        {% set args = request.args.copy() %}
+        {% set _ = args.pop('page', None) %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('reports.mei_report', page=page, **args) }}">{{ page }}</a>
+        </li>
+      {% else %}
+        <li class="page-item active">
+          <span class="page-link">{{ page }}</span>
+        </li>
+      {% endif %}
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">...</span>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  {% if pagination.has_next %}
+    {% set args = request.args.copy() %}
+    {% set _ = args.pop('page', None) %}
+    <li class="page-item">
+      <a class="page-link" href="{{ url_for('reports.mei_report', page=pagination.next_num, **args) }}">&raquo;</a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">&raquo;</span>
+    </li>
+  {% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Rodapé do Relatório - Visível apenas na impressão -->
+<div class="report-footer print-only">
+  <p>{{ current_user.mei_company_name }} - CNPJ: {{ current_user.mei_cnpj }}</p>
+  <p>Sistema de Gerenciamento Financeiro MEI - Página 1</p>
+  <p>Este relatório contém informações confidenciais e é destinado apenas para uso empresarial.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Função para exportar para Excel
+function exportToExcel() {
+  // Determinar qual tabela exportar com base no período
+  let table;
+  let filename;
+  
+  if ({% if request.args.get('period') == 'year' %}true{% else %}false{% endif %}) {
+    // Relatório anual - usar a tabela anual
+    table = document.getElementById('annual-table');
+    filename = "relatorio_anual_mei_{{ current_year }}.xls";
+  } else {
+    // Relatório mensal - usar a tabela de transações
+    table = document.querySelector('.report-table');
+    filename = "relatorio_mensal_mei_{{ current_month }}_{{ current_year }}.xls";
+  }
+  
+  let html = table.outerHTML;
+
+  // Converter para formato compatível com Excel
+  let uri = 'data:application/vnd.ms-excel;base64,';
+  let template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório MEI</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>';
+
+  let base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) };
+  let format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) };
+
+  let ctx = {table: html};
+  let downloadLink = document.createElement("a");
+  downloadLink.href = uri + base64(format(template, ctx));
+  downloadLink.download = filename;
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+// Função para imprimir relatório
+function printReport() {
+  // Obter valores do servidor via variáveis JavaScript
+  const currentMonth = {{ current_month }};
+  const currentYear = {{ current_year }};
+  const meiCompanyName = "{{ current_user.mei_company_name }}";
+  const meiCnpj = "{{ current_user.mei_cnpj }}";
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const totalTransactionsMonth = {{ total_transactions_month }};
+  const totalAllTransactions = {{ total_all_transactions }};
+  const totalIncome = {{ total_income }};
+  const totalExpense = {{ total_expense }};
+  const balance = totalIncome - totalExpense;
+  const isPeriodYear = {% if request.args.get('period') == 'year' %}true{% else %}false{% endif %};
+
+  // Criar conteúdo de impressão personalizado
+  const printContent = document.createElement('div');
+  printContent.classList.add('print-only');
+
+  // Adicionar título e subtítulo
+  const title = document.createElement('div');
+  title.style.textAlign = 'center';
+  title.style.fontSize = '18pt';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '10px';
+  title.textContent = 'Relatório Financeiro MEI';
+  printContent.appendChild(title);
+
+  const subtitle = document.createElement('div');
+  subtitle.style.textAlign = 'center';
+  subtitle.style.fontSize = '14pt';
+  subtitle.style.marginBottom = '20px';
+  subtitle.innerHTML = `${meiCompanyName} - CNPJ: ${meiCnpj}<br>`;
+  
+  if (isPeriodYear) {
+    subtitle.innerHTML += `Período: Ano ${currentYear}`;
+  } else {
+    subtitle.innerHTML += `Período: ${monthNames[currentMonth-1]}/${currentYear}`;
+  }
+  printContent.appendChild(subtitle);
+
+  // Adicionar informações do relatório
+  const info = document.createElement('div');
+  info.style.marginBottom = '20px';
+
+  const dateInfo = document.createElement('div');
+  dateInfo.textContent = `Data de geração: ${new Date().toLocaleString('pt-BR')}`;
+  info.appendChild(dateInfo);
+
+  const userInfo = document.createElement('div');
+  userInfo.textContent = `Usuário: {{ current_user.full_name or current_user.username }}`;
+  info.appendChild(userInfo);
+
+  const transactionInfo = document.createElement('div');
+  transactionInfo.textContent = `Total de transações MEI deste ${isPeriodYear ? 'ano' : 'mês'}: ${totalTransactionsMonth} (Total geral: ${totalAllTransactions})`;
+  info.appendChild(transactionInfo);
+
+  printContent.appendChild(info);
+
+  // Adicionar resumo financeiro
+  const summary = document.createElement('div');
+  summary.style.marginBottom = '20px';
+  summary.style.display = 'flex';
+  summary.style.justifyContent = 'space-between';
+
+  const income = document.createElement('div');
+  income.style.flex = '1';
+  income.style.padding = '10px';
+  income.style.backgroundColor = '#d4edda';
+  income.style.borderRadius = '5px';
+  income.style.marginRight = '10px';
+  income.innerHTML = `<strong>Total de Receitas:</strong> R$ ${totalIncome.toFixed(2)}`;
+  summary.appendChild(income);
+
+  const expense = document.createElement('div');
+  expense.style.flex = '1';
+  expense.style.padding = '10px';
+  expense.style.backgroundColor = '#f8d7da';
+  expense.style.borderRadius = '5px';
+  expense.style.marginRight = '10px';
+  expense.innerHTML = `<strong>Total de Despesas:</strong> R$ ${totalExpense.toFixed(2)}`;
+  summary.appendChild(expense);
+
+  const balanceDiv = document.createElement('div');
+  balanceDiv.style.flex = '1';
+  balanceDiv.style.padding = '10px';
+  balanceDiv.style.backgroundColor = '#d1ecf1';
+  balanceDiv.style.borderRadius = '5px';
+  balanceDiv.innerHTML = `<strong>Saldo do Período:</strong> R$ ${balance.toFixed(2)}`;
+  summary.appendChild(balanceDiv);
+
+  printContent.appendChild(summary);
+  
+  // Clonar a tabela apropriada
+  let table;
+  if (isPeriodYear) {
+    // Para relatório anual, usar a tabela anual
+    table = document.getElementById('annual-table').cloneNode(true);
+  } else {
+    // Para relatório mensal, usar a tabela de transações
+    table = document.querySelector('.all-transactions .report-table').cloneNode(true);
+    
+    // Remover a coluna de ações se existir
+    const headers = table.querySelectorAll('th');
+    for (let i = 0; i < headers.length; i++) {
+      if (headers[i].textContent.trim() === 'Ações') {
+        // Remover a coluna de ações
+        const rows = table.querySelectorAll('tr');
+        rows.forEach(row => {
+          if (row.cells[i]) row.removeChild(row.cells[i]);
+        });
+        headers[i].parentNode.removeChild(headers[i]);
+        break;
+      }
+    }
+  }
+  
+  table.style.width = '100%';
+  table.style.borderCollapse = 'collapse';
+  table.style.marginBottom = '20px';
+
+  // Estilizar a tabela para impressão
+  const cells = table.querySelectorAll('th, td');
+  cells.forEach(cell => {
+    cell.style.border = '1px solid #ddd';
+    cell.style.padding = '8px';
+    cell.style.textAlign = 'left';
+  });
+
+  const headers = table.querySelectorAll('th');
+  headers.forEach(header => {
+    header.style.backgroundColor = '#f4f4f4';
+    header.style.color = '#333';
+    header.style.fontWeight = 'bold';
+  });
+
+  printContent.appendChild(table);
+
+  // Adicionar rodapé
+  const footer = document.createElement('div');
+  footer.style.marginTop = '30px';
+  footer.style.fontSize = '10pt';
+  footer.style.textAlign = 'center';
+  footer.style.color = '#666';
+  footer.innerHTML = `${meiCompanyName} - CNPJ: ${meiCnpj}<br>Sistema de Gerenciamento Financeiro MEI - Página 1<br>Este relatório contém informações confidenciais e é destinado apenas para uso empresarial.`;
+  printContent.appendChild(footer);
+
+  // Substituir temporariamente o conteúdo para impressão
+  const originalContent = document.body.innerHTML;
+  document.body.innerHTML = printContent.outerHTML;
+
+  // Imprimir
+  window.print();
+
+  // Restaurar conteúdo original
+  document.body.innerHTML = originalContent;
+
+  // Recarregar scripts necessários
+  location.reload();
+}
+
+// Polyfill para o seletor :contains
+jQuery.expr[':'].contains = function(a, i, m) {
+  return jQuery(a).text().toUpperCase()
+      .indexOf(m[3].toUpperCase()) >= 0;
+};
+
+// Alternar visibilidade dos filtros mensais/anuais
+document.addEventListener('DOMContentLoaded', function() {
+  const periodSelect = document.getElementById('period-select');
+  const monthSelectContainer = document.getElementById('month-select-container');
+  const monthlyFilters = document.querySelectorAll('.monthly-filter');
+  
+  periodSelect.addEventListener('change', function() {
+    if (this.value === 'year') {
+      monthSelectContainer.style.display = 'none';
+      monthlyFilters.forEach(filter => {
+        filter.style.display = 'none';
+      });
+    } else {
+      monthSelectContainer.style.display = '';
+      monthlyFilters.forEach(filter => {
+        filter.style.display = '';
+      });
+    }
+  });
+
+  {% if request.args.get('period') == 'year' %}
+  // Renderizar gráfico anual
+  var annualChartCtx = document.getElementById('annualChart').getContext('2d');
+  var annualChart = new Chart(annualChartCtx, {
+    type: 'bar',
+    data: {
+      labels: [{% for month_data in annual_data %}'{{ month_data.month_name }}',{% endfor %}],
+      datasets: [
+        {
+          label: 'Receitas',
+          backgroundColor: 'rgba(40, 167, 69, 0.7)',
+          borderColor: '#28a745',
+          borderWidth: 1,
+          data: [{% for month_data in annual_data %}{{ month_data.income }},{% endfor %}]
+        },
+        {
+          label: 'Despesas',
+          backgroundColor: 'rgba(220, 53, 69, 0.7)',
+          borderColor: '#dc3545',
+          borderWidth: 1,
+          data: [{% for month_data in annual_data %}{{ month_data.expense }},{% endfor %}]
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      scales: {
+        y: {
+          beginAtZero: true,
+          ticks: {
+            callback: function(value) {
+              return 'R$ ' + value.toFixed(2);
+            }
+          }
+        }
+      },
+      plugins: {
+        tooltip: {
+          callbacks: {
+            label: function(context) {
+              var label = context.dataset.label || '';
+              var value = context.raw || 0;
+              return label + ': R$ ' + value.toFixed(2);
+            }
+          }
+        }
+      }
+    }
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

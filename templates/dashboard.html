@@ -1,0 +1,544 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{% if current_user.is_mei %}Dashboard MEI{% else %}Dashboard{% endif %}{% endblock %}
+{% block breadcrumb %}{% if current_user.is_mei %}Dashboard MEI{% else %}Dashboard{% endif %}{% endblock %}
+
+{% block extra_css %}
+<style>
+.dashboard-container {
+  min-height: 400px;
+}
+.card-draggable {
+  margin-bottom: 20px;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Info boxes -->
+<div class="row">
+<div class="col-12 col-sm-6 col-md-3">
+<div class="small-box bg-info">
+<div class="inner">
+  <h3>R$ {{ "%.2f"|format(total_balance) }}</h3>
+  <p>{% if current_user.is_mei %}Saldo Total MEI{% else %}Saldo Total{% endif %}</p>
+</div>
+<div class="icon">
+  <i class="fas fa-wallet"></i>
+</div>
+</div>
+</div>
+<div class="col-12 col-sm-6 col-md-3">
+<div class="small-box bg-success">
+<div class="inner">
+  <h3>R$ {{ "%.2f"|format(total_income) }}</h3>
+  <p>{% if current_user.is_mei %}Receitas MEI (Mês){% else %}Receitas (Mês){% endif %}</p>
+</div>
+<div class="icon">
+  <i class="fas fa-arrow-up"></i>
+</div>
+</div>
+</div>
+
+<div class="clearfix hidden-md-up"></div>
+
+<div class="col-12 col-sm-6 col-md-3">
+<div class="small-box bg-danger">
+<div class="inner">
+  <h3>R$ {{ "%.2f"|format(total_expense) }}</h3>
+  <p>{% if current_user.is_mei %}Despesas MEI (Mês){% else %}Despesas (Mês){% endif %}</p>
+</div>
+<div class="icon">
+  <i class="fas fa-arrow-down"></i>
+</div>
+</div>
+</div>
+<div class="col-12 col-sm-6 col-md-3">
+<div class="small-box bg-warning">
+<div class="inner">
+  <h3>R$ {{ "%.2f"|format(total_income - total_expense) }}</h3>
+  <p>{% if current_user.is_mei %}Saldo MEI do Mês{% else %}Saldo do Mês{% endif %}</p>
+</div>
+<div class="icon">
+  <i class="fas fa-chart-line"></i>
+</div>
+</div>
+</div>
+</div>
+<!-- /.row -->
+
+<!-- Dashboard Layout -->
+<div class="dashboard-container">
+<div class="row" id="dashboard-layout">
+  <!-- Gráfico de Evolução Mensal -->
+  <div class="col-md-8" data-card-id="monthly-chart">
+    <div class="card card-primary card-outline card-draggable">
+      <div class="card-header ui-sortable-handle">
+        <h3 class="card-title">
+          <i class="fas fa-chart-line mr-1"></i>
+          Evolução Financeira (Últimos 6 meses)
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart">
+          <canvas id="monthlyChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col -->
+
+  <!-- Gráfico de Categorias de Despesas -->
+  <div class="col-md-4" data-card-id="expense-category-chart">
+    <div class="card card-danger card-outline card-draggable">
+      <div class="card-header ui-sortable-handle">
+        <h3 class="card-title">
+          <i class="fas fa-chart-pie mr-1"></i>
+          Despesas por Categoria
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body">
+        <div class="chart">
+          <canvas id="expenseCategoryChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col -->
+
+  <!-- Contas Bancárias -->
+  <div class="col-md-4" data-card-id="accounts">
+    <div class="card card-info card-outline card-draggable">
+      <div class="card-header ui-sortable-handle">
+        <h3 class="card-title">
+          <i class="fas fa-university mr-1"></i>
+          Contas Bancárias
+        </h3>
+        <div class="card-tools">
+          <a href="{{ url_for('accounts.add') }}" class="btn btn-tool">
+            <i class="fas fa-plus"></i>
+          </a>
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <ul class="products-list product-list-in-card pl-2 pr-2">
+          {% for account in accounts %}
+          <li class="item">
+            <div class="product-info">
+              <a href="{{ url_for('transactions.index', account=account.id) }}" class="product-title">
+                {{ account.name }}
+                <span class="badge badge-{{ 'success' if account.balance >= 0 else 'danger' }} float-right">
+                  R$ {{ "%.2f"|format(account.balance) }}
+                </span>
+              </a>
+            </div>
+          </li>
+          {% else %}
+          <li class="item">
+            <div class="product-info text-center">
+              <p class="text-muted">Nenhuma conta cadastrada</p>
+              <a href="{{ url_for('accounts.add') }}" class="btn btn-sm btn-primary">
+                <i class="fas fa-plus"></i> Adicionar Conta
+              </a>
+            </div>
+          </li>
+          {% endfor %}
+        </ul>
+      </div>
+    </div>
+  </div>
+  <!-- /.col -->
+
+  <!-- Transações Pendentes -->
+  <div class="col-md-8" data-card-id="pending-transactions">
+    <div class="card card-warning card-outline card-draggable">
+      <div class="card-header ui-sortable-handle">
+        <h3 class="card-title">
+          <i class="fas fa-clock mr-1"></i>
+          Transações Pendentes
+        </h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in pending_transactions %}
+              <tr>
+                <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                  {% for category in current_user.categories %}
+                    {% if category.id == transaction.category_id %}
+                      <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                        {{ category.name }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if transaction.type == 'receita' %}
+                  <span class="badge bg-success">Receita</span>
+                  {% else %}
+                  <span class="badge bg-danger">Despesa</span>
+                  {% endif %}
+                </td>
+                <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" class="btn btn-xs btn-warning">
+                      <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% if transaction.status == 'pendente' %}
+                      <a href="{{ url_for('transactions.confirm', transaction_id=transaction.id) }}" class="btn btn-xs btn-success">
+                        <i class="fas fa-check"></i> Confirmar
+                      </a>
+                      <a href="{{ url_for('transactions.cancel', transaction_id=transaction.id) }}" class="btn btn-xs btn-info">
+                        <i class="fas fa-times"></i> Cancelar
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="6" class="text-center">Nenhuma transação pendente</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col -->
+
+  <!-- Transações Recentes -->
+  <div class="col-md-12" data-card-id="recent-transactions">
+    <div class="card card-success card-outline card-draggable">
+      <div class="card-header ui-sortable-handle">
+        <h3 class="card-title">
+          <i class="fas fa-exchange-alt mr-1"></i>
+          Transações Recentes
+        </h3>
+        <div class="card-tools">
+          <a href="{{ url_for('transactions.add') }}" class="btn btn-tool">
+            <i class="fas fa-plus"></i>
+          </a>
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body p-0">
+        <div class="table-responsive">
+          <table class="table table-striped">
+            <thead>
+              <tr>
+                <th>Data</th>
+                <th>Descrição</th>
+                <th>Categoria</th>
+                <th>Conta</th>
+                <th>Tipo</th>
+                <th>Valor</th>
+                <th>Status</th>
+                <th>Ações</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for transaction in recent_transactions %}
+              <tr>
+                <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+                <td>{{ transaction.description }}</td>
+                <td>
+                  {% for category in current_user.categories %}
+                    {% if category.id == transaction.category_id %}
+                      <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                        {{ category.name }}
+                      </span>
+                    {% endif %}
+                  {% endfor %}
+                </td>
+                <td>
+                  {% for account in accounts %}
+                    {% if account.id == transaction.account_id %}
+                      {{ account.name }}
+                    {% endif %}
+                  {% endfor %}
+                </td>
+                <td>
+                  {% if transaction.type == 'receita' %}
+                  <span class="badge bg-success">Receita</span>
+                  {% else %}
+                  <span class="badge bg-danger">Despesa</span>
+                  {% endif %}
+                </td>
+                <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+                <td>
+                  {% if transaction.status == 'confirmado' %}
+                  <span class="badge bg-success">Confirmado</span>
+                  {% elif transaction.status == 'pendente' %}
+                  <span class="badge bg-warning pending-badge">Pendente</span>
+                  {% else %}
+                  <span class="badge bg-secondary">Cancelado</span>
+                  {% endif %}
+                </td>
+                <td>
+                  <div class="btn-group">
+                    <a href="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" class="btn btn-xs btn-warning">
+                      <i class="fas fa-edit"></i> Editar
+                    </a>
+                    {% if transaction.status == 'pendente' %}
+                      <a href="{{ url_for('transactions.confirm', transaction_id=transaction.id) }}" class="btn btn-xs btn-success">
+                        <i class="fas fa-check"></i> Confirmar
+                      </a>
+                      <a href="{{ url_for('transactions.cancel', transaction_id=transaction.id) }}" class="btn btn-xs btn-info">
+                        <i class="fas fa-times"></i> Cancelar
+                      </a>
+                    {% endif %}
+                  </div>
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="8" class="text-center">Nenhuma transação registrada</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /.col -->
+</div>
+<!-- /.row -->
+</div>
+<!-- /.dashboard-container -->
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Gráfico de Categorias de Despesas
+var expenseCategoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+var expenseCategoryChart = new Chart(expenseCategoryCtx, {
+  type: 'doughnut',
+  data: {
+    labels: [
+      {% for category, amount in expense_categories.items() %}
+        '{{ category }}',
+      {% endfor %}
+    ],
+    datasets: [{
+      data: [
+        {% for category, amount in expense_categories.items() %}
+          {{ amount }},
+        {% endfor %}
+      ],
+      backgroundColor: [
+        {% for category, amount in expense_categories.items() %}
+          '{{ expense_colors[category] }}',
+        {% endfor %}
+      ]
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: {
+        position: 'right',
+      },
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            var label = context.label || '';
+            var value = context.raw || 0;
+            return label + ': R$ ' + value.toFixed(2);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Gráfico de Evolução Mensal
+var monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+var monthlyChart = new Chart(monthlyCtx, {
+  type: 'line',
+  data: {
+    labels: [
+      {% for month in monthly_data.keys() %}
+        '{{ month }}',
+      {% endfor %}
+    ],
+    datasets: [
+      {
+        label: 'Receitas',
+        borderColor: '#28a745',
+        backgroundColor: 'rgba(40, 167, 69, 0.2)',
+        data: [
+          {% for month, values in monthly_data.items() %}
+            {{ values['receita'] }},
+          {% endfor %}
+        ],
+        fill: true,
+        tension: 0.4
+      },
+      {
+        label: 'Despesas',
+        borderColor: '#dc3545',
+        backgroundColor: 'rgba(220, 53, 69, 0.2)',
+        data: [
+          {% for month, values in monthly_data.items() %}
+            {{ values['despesa'] }},
+          {% endfor %}
+        ],
+        fill: true,
+        tension: 0.4
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      y: {
+        beginAtZero: true,
+        ticks: {
+          callback: function(value) {
+            return 'R$ ' + value.toFixed(2);
+          }
+        }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: function(context) {
+            var label = context.dataset.label || '';
+            var value = context.raw || 0;
+            return label + ': R$ ' + value.toFixed(2);
+          }
+        }
+      }
+    }
+  }
+});
+
+// Configuração para arrastar e soltar cards
+$(function() {
+  // Inicializar layout salvo, se existir
+  var savedLayout = {{ dashboard_layout|tojson|safe if dashboard_layout else 'null' }};
+  if (savedLayout) {
+    try {
+      // Reorganizar os cards com base no layout salvo
+      for (var i = 0; i < savedLayout.length; i++) {
+        var cardId = savedLayout[i].id;
+        var colSize = savedLayout[i].size;
+        var cardElement = $('[data-card-id="' + cardId + '"]');
+        
+        // Atualizar tamanho da coluna
+        if (cardElement.length) {
+          cardElement.removeClass().addClass('col-md-' + colSize);
+        }
+      }
+    } catch (e) {
+      console.error("Erro ao carregar layout:", e);
+    }
+  }
+
+  // Tornar os cards arrastáveis
+  $("#dashboard-layout").sortable({
+    handle: '.card-header',
+    placeholder: 'card-placeholder',
+    forcePlaceholderSize: true,
+    tolerance: "pointer",
+    cursor: "move"
+  });
+
+  // Função para salvar layout automaticamente
+  function saveLayout() {
+    var layout = [];
+    
+    // Coletar informações de cada card
+    $("#dashboard-layout > div").each(function() {
+      var cardId = $(this).data('card-id');
+      var colSize = parseInt($(this).attr('class').match(/col-md-(\d+)/)[1]);
+      
+      layout.push({
+        id: cardId,
+        size: colSize
+      });
+    });
+    
+    // Enviar para o servidor
+    $.ajax({
+      url: "{{ url_for('dashboard.save_layout') }}",
+      type: "POST",
+      contentType: "application/json",
+      data: JSON.stringify({ layout: layout }),
+      success: function(response) {
+        if (response.success) {
+          console.log('Layout salvo automaticamente');
+        }
+      },
+      error: function() {
+        console.error('Erro ao salvar layout');
+      }
+    });
+  }
+
+  // Salvar layout quando for alterado
+  $("#dashboard-layout").on("sortupdate", function(event, ui) {
+    saveLayout();
+  });
+
+  // Permitir redimensionar colunas
+  $(".col-md-4, .col-md-8, .col-md-6, .col-md-12").dblclick(function() {
+    var currentClass = $(this).attr('class');
+    
+    if (currentClass.includes('col-md-4')) {
+      $(this).removeClass('col-md-4').addClass('col-md-6');
+    } else if (currentClass.includes('col-md-6')) {
+      $(this).removeClass('col-md-6').addClass('col-md-8');
+    } else if (currentClass.includes('col-md-8')) {
+      $(this).removeClass('col-md-8').addClass('col-md-12');
+    } else if (currentClass.includes('col-md-12')) {
+      $(this).removeClass('col-md-12').addClass('col-md-4');
+    }
+    
+    // Salvar layout após redimensionar
+    saveLayout();
+  });
+});
+</script>
+{% endblock %}

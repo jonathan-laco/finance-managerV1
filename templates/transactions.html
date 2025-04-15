@@ -1,0 +1,321 @@
+{% extends 'base.html' %}
+
+{% block page_title %}{% if current_user.is_mei %}Transações MEI{% else %}Transações{% endif %}{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-12">
+<div class="card">
+  <div class="card-header">
+    <h3 class="card-title">Suas Transações</h3>
+    <!-- Remover o botão de transações MEI para usuários MEI -->
+    <div class="card-tools">
+      <a href="{{ url_for('transactions.add') }}" class="btn btn-primary btn-sm">
+        <i class="fas fa-plus"></i> {% if current_user.is_mei %}Nova Transação MEI{% else %}Nova Transação{% endif %}
+      </a>
+      {% if is_mei %}
+      <a href="{{ url_for('transactions.mei_transactions') }}" class="btn btn-success btn-sm ml-2">
+        <i class="fas fa-building"></i> Transações MEI
+      </a>
+      {% endif %}
+    </div>
+  </div>
+  <!-- /.card-header -->
+  <div class="card-body">
+    <!-- Filtros -->
+    <form method="get" action="{{ url_for('transactions.index') }}" class="mb-4">
+      <!-- Modificar a seção de filtros para adicionar o seletor de itens por página -->
+      <div class="row">
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Conta</label>
+            <select class="form-control" name="account">
+              <option value="">Todas as contas</option>
+              {% for account in accounts %}
+              <option value="{{ account.id }}" {% if request.args.get('account')|int == account.id %}selected{% endif %}>
+                {{ account.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Tipo</label>
+            <select class="form-control" name="type">
+              <option value="">Todos os tipos</option>
+              <option value="receita" {% if request.args.get('type') == 'receita' %}selected{% endif %}>Receitas</option>
+              <option value="despesa" {% if request.args.get('type') == 'despesa' %}selected{% endif %}>Despesas</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Status</label>
+            <select class="form-control" name="status">
+              <option value="">Todos os status</option>
+              <option value="confirmado" {% if request.args.get('status') == 'confirmado' %}selected{% endif %}>Confirmados</option>
+              <option value="pendente" {% if request.args.get('status') == 'pendente' %}selected{% endif %}>Pendentes</option>
+              <option value="cancelado" {% if request.args.get('status') == 'cancelado' %}selected{% endif %}>Cancelados</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Categoria</label>
+            <select class="form-control" name="category">
+              <option value="">Todas as categorias</option>
+              {% for category in categories %}
+              <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                {{ category.name }}
+              </option>
+              {% endfor %}
+            </select>
+          </div>
+        </div>
+      </div>
+      <div class="row">
+        {% if is_mei %}
+        <!-- Remover o filtro de transações MEI para usuários MEI -->
+        {% if not current_user.is_mei %}
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Tipo de Transação</label>
+            <select class="form-control" name="is_mei_transaction">
+              <option value="">Todas</option>
+              <option value="1" {% if request.args.get('is_mei_transaction') == '1' %}selected{% endif %}>Apenas MEI</option>
+              <option value="0" {% if request.args.get('is_mei_transaction') == '0' %}selected{% endif %}>Apenas Pessoais</option>
+            </select>
+          </div>
+        </div>
+        {% endif %}
+        <div class="col-md-3">
+          <div class="form-group">
+            <label>Nota Fiscal</label>
+            <select class="form-control" name="has_invoice">
+              <option value="">Todas</option>
+              <option value="1" {% if request.args.get('has_invoice') == '1' %}selected{% endif %}>Com Nota Fiscal</option>
+              <option value="0" {% if request.args.get('has_invoice') == '0' %}selected{% endif %}>Sem Nota Fiscal</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+        {% else %}
+        <div class="col-md-6">
+        {% endif %}
+          <div class="form-group">
+            <label>Itens por página</label>
+            <select class="form-control" name="per_page">
+              <option value="10" {% if request.args.get('per_page', '20')|int == 10 %}selected{% endif %}>10 itens</option>
+              <option value="20" {% if request.args.get('per_page', '20')|int == 20 %}selected{% endif %}>20 itens</option>
+              <option value="50" {% if request.args.get('per_page', '20')|int == 50 %}selected{% endif %}>50 itens</option>
+            </select>
+          </div>
+        </div>
+        <div class="col-md-3">
+          <div class="form-group" style="margin-top: 32px;">
+            <button type="submit" class="btn btn-info">Filtrar</button>
+            <a href="{{ url_for('transactions.index') }}" class="btn btn-default">Limpar Filtros</a>
+          </div>
+        </div>
+      </div>
+    </form>
+    
+    <div class="table-responsive">
+      <table class="table table-bordered table-striped">
+        <thead>
+          <tr>
+            <th>Data</th>
+            <th>Descrição</th>
+            <th>Categoria</th>
+            <th>Conta</th>
+            <th>Tipo</th>
+            <th>Valor</th>
+            <th>Status</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for transaction in transactions %}
+          <tr {% if transaction.is_mei_transaction %}class="table-success"{% endif %}>
+            <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+            <td>
+              {{ transaction.description }}
+              {% if transaction.is_mei_transaction %}
+                <span class="badge badge-success">MEI</span>
+              {% endif %}
+            </td>
+            <td>
+              {% for category in current_user.categories %}
+                {% if category.id == transaction.category_id %}
+                  <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                    {{ category.name }}
+                  </span>
+                {% endif %}
+              {% endfor %}
+            </td>
+            <td>{{ transaction.account.name }}</td>
+            <td>
+              {% if transaction.type == 'receita' %}
+              <span class="badge bg-success">Receita</span>
+              {% else %}
+              <span class="badge bg-danger">Despesa</span>
+              {% endif %}
+            </td>
+            <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+            <td>
+              {% if transaction.status == 'confirmado' %}
+              <span class="badge bg-success">Confirmado</span>
+              {% elif transaction.status == 'pendente' %}
+              <span class="badge bg-warning pending-badge">Pendente</span>
+              {% else %}
+              <span class="badge bg-secondary">Cancelado</span>
+              {% endif %}
+            </td>
+            <!-- Update the actions column to include the delete button and modal -->
+            <td class="no-print">
+              <div class="btn-group">
+                <a href="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" class="btn btn-xs btn-warning">
+                  <i class="fas fa-edit"></i> Editar
+                </a>
+                {% if transaction.has_invoice %}
+                <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" class="btn btn-xs btn-primary">
+                  <i class="fas fa-file-download"></i> Nota Fiscal
+                </a>
+                {% endif %}
+                {% if transaction.status == 'pendente' %}
+                <a href="{{ url_for('transactions.confirm', transaction_id=transaction.id) }}" class="btn btn-xs btn-success">
+                  <i class="fas fa-check"></i> Confirmar
+                </a>
+                <a href="{{ url_for('transactions.cancel', transaction_id=transaction.id) }}" class="btn btn-xs btn-info">
+                  <i class="fas fa-times"></i> Cancelar
+                </a>
+                {% endif %}
+                <button type="button" class="btn btn-xs btn-danger" data-toggle="modal" data-target="#deleteModal{{ transaction.id }}">
+                  <i class="fas fa-trash"></i> Excluir
+                </button>
+              </div>
+              
+              <!-- Modal de Exclusão -->
+              <div class="modal fade" id="deleteModal{{ transaction.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ transaction.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteModalLabel{{ transaction.id }}">Confirmar Exclusão</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <p>Tem certeza que deseja excluir esta transação?</p>
+                      <p><strong>Descrição:</strong> {{ transaction.description }}</p>
+                      <p><strong>Valor:</strong> R$ {{ "%.2f"|format(transaction.amount) }}</p>
+                      <p><strong>Data:</strong> {{ transaction.date.strftime('%d/%m/%Y') }}</p>
+                      
+                      {% if transaction.status == 'confirmado' %}
+                      <div class="alert alert-warning">
+                        <i class="fas fa-exclamation-triangle"></i> Esta é uma transação confirmada. Excluí-la irá ajustar o saldo da conta.
+                      </div>
+                      {% endif %}
+                      
+                      {% if transaction.has_invoice %}
+                      <div class="alert alert-info">
+                        <i class="fas fa-file-invoice"></i> Esta transação possui uma nota fiscal anexada que também será excluída.
+                      </div>
+                      {% endif %}
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('transactions.delete', transaction_id=transaction.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Excluir</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="8" class="text-center">Nenhuma transação encontrada</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    
+    <!-- Paginação -->
+    {% if pagination.pages > 1 %}
+    <div class="d-flex justify-content-center mt-4">
+      <ul class="pagination">
+        {% if pagination.has_prev %}
+          <li class="page-item">
+            {% set args = request.args.copy() %}
+            {% set _ = args.pop('page', None) %}
+            <a class="page-link" href="{{ url_for('transactions.index', page=pagination.prev_num, **args) }}">&laquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&laquo;</span>
+          </li>
+        {% endif %}
+        
+        {% for page in pagination.iter_pages() %}
+          {% if page %}
+            {% if page != pagination.page %}
+              {% set args = request.args.copy() %}
+              {% set _ = args.pop('page', None) %}
+              <li class="page-item">
+                <a class="page-link" href="{{ url_for('transactions.index', page=page, **args) }}">{{ page }}</a>
+              </li>
+            {% else %}
+              <li class="page-item active">
+                <span class="page-link">{{ page }}</span>
+              </li>
+            {% endif %}
+          {% else %}
+            <li class="page-item disabled">
+              <span class="page-link">...</span>
+            </li>
+          {% endif %}
+        {% endfor %}
+        
+        {% if pagination.has_next %}
+          {% set args = request.args.copy() %}
+          {% set _ = args.pop('page', None) %}
+          <li class="page-item">
+            <a class="page-link" href="{{ url_for('transactions.index', page=pagination.next_num, **args) }}">&raquo;</a>
+          </li>
+        {% else %}
+          <li class="page-item disabled">
+            <span class="page-link">&raquo;</span>
+          </li>
+        {% endif %}
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  <!-- /.card-body -->
+</div>
+<!-- /.card -->
+</div>
+</div>
+<!-- Adicionar estilos para corrigir problemas de quebra de linha nos modais -->
+<style>
+.modal-body p, .modal-body div {
+word-wrap: break-word;
+word-break: break-word;
+overflow-wrap: break-word;
+}
+
+.modal-content {
+max-width: 100%;
+}
+
+.alert {
+word-wrap: break-word;
+word-break: break-word;
+overflow-wrap: break-word;
+}
+</style>
+{% endblock %}

@@ -1,0 +1,317 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Editar Transação{% endblock %}
+{% block breadcrumb %}Editar Transação{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-md-6">
+<div class="card card-primary">
+  <div class="card-header">
+    <h3 class="card-title">Editar Transação</h3>
+  </div>
+  <!-- /.card-header -->
+  <!-- form start -->
+  <form method="post" action="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" enctype="multipart/form-data" id="editTransactionForm">
+    <div class="card-body">
+      <div class="form-group">
+        <label>Tipo de Transação</label>
+        <div class="custom-control custom-radio">
+          <input class="custom-control-input" type="radio" id="type_income" name="type" value="receita" {% if transaction.type == 'receita' %}checked{% endif %}>
+          <label for="type_income" class="custom-control-label">Receita</label>
+        </div>
+        <div class="custom-control custom-radio">
+          <input class="custom-control-input" type="radio" id="type_expense" name="type" value="despesa" {% if transaction.type == 'despesa' %}checked{% endif %}>
+          <label for="type_expense" class="custom-control-label">Despesa</label>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="account_id">Conta</label>
+        <select class="form-control" id="account_id" name="account_id" required>
+          <option value="">Selecione uma conta</option>
+          {% for account in accounts %}
+          <option value="{{ account.id }}" {% if transaction.account_id == account.id %}selected{% endif %}>
+            {{ account.name }} (R$ {{ "%.2f"|format(account.balance) }})
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <label for="amount">Valor</label>
+        <div class="input-group">
+          <div class="input-group-prepend">
+            <span class="input-group-text">R$</span>
+          </div>
+          <input type="number" class="form-control" id="amount" name="amount" placeholder="0.00" step="0.01" min="0.01" value="{{ "%.2f"|format(transaction.amount) }}" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="description">Descrição</label>
+        <input type="text" class="form-control" id="description" name="description" placeholder="Ex: Salário, Aluguel, etc." value="{{ transaction.description }}" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="category_id">Categoria</label>
+        <select class="form-control" id="category_id" name="category_id" required>
+          <option value="">Selecione uma categoria</option>
+          <optgroup label="Receitas" id="income_categories" {% if transaction.type == 'despesa' %}style="display: none;"{% endif %}>
+            {% for category in income_categories %}
+            <option value="{{ category.id }}" data-color="{{ category.color }}" {% if transaction.category_id == category.id %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+            {% endfor %}
+          </optgroup>
+          <optgroup label="Despesas" id="expense_categories" {% if transaction.type == 'receita' %}style="display: none;"{% endif %}>
+            {% for category in expense_categories %}
+            <option value="{{ category.id }}" data-color="{{ category.color }}" {% if transaction.category_id == category.id %}selected{% endif %}>
+              {{ category.name }}
+            </option>
+            {% endfor %}
+          </optgroup>
+        </select>
+      </div>
+      
+      <div class="form-group">
+        <div class="custom-control custom-checkbox">
+          <input class="custom-control-input" type="checkbox" id="is_confirmed" name="is_confirmed" {% if transaction.status == 'confirmado' %}checked{% endif %}>
+          <label for="is_confirmed" class="custom-control-label">Transação confirmada</label>
+        </div>
+        <small class="form-text text-muted">Marque esta opção se a transação já foi efetivada. Caso contrário, será registrada como pendente.</small>
+      </div>
+      
+      {% if is_mei %}
+      <div id="invoice_fields">
+        <hr>
+        <h5>Nota Fiscal</h5>
+        
+        {% if invoice %}
+        <div class="alert alert-info">
+          <p><strong>Nota fiscal atual:</strong> {{ invoice.original_filename }}</p>
+          {% if invoice.invoice_number %}
+          <p><strong>Número:</strong> {{ invoice.invoice_number }}</p>
+          {% endif %}
+          {% if invoice.invoice_date %}
+          <p><strong>Data:</strong> {{ invoice.invoice_date.strftime('%d/%m/%Y') }}</p>
+          {% endif %}
+          <div class="mt-2">
+            <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" class="btn btn-sm btn-primary" target="_blank">
+              <i class="fas fa-download"></i> Baixar Nota Fiscal
+            </a>
+            <button type="button" class="btn btn-sm btn-danger" data-toggle="modal" data-target="#deleteInvoiceModal">
+              <i class="fas fa-trash"></i> Excluir Nota Fiscal
+            </button>
+          </div>
+        </div>
+        
+        <!-- Modal de Exclusão de Nota Fiscal -->
+        <div class="modal fade" id="deleteInvoiceModal" tabindex="-1" role="dialog" aria-labelledby="deleteInvoiceModalLabel" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteInvoiceModalLabel">Confirmar Exclusão</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta nota fiscal?</p>
+                <p>Esta ação não pode ser desfeita.</p>
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <a href="{{ url_for('transactions.delete_invoice', transaction_id=transaction.id) }}" class="btn btn-danger">Excluir</a>
+              </div>
+            </div>
+          </div>
+        </div>
+        
+        <div class="form-group mt-3">
+          <label for="invoice_file">Substituir Nota Fiscal</label>
+          <div class="input-group">
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="invoice_file" name="invoice_file" accept=".pdf,.jpg,.jpeg,.png">
+              <label class="custom-file-label" for="invoice_file">Escolher arquivo</label>
+            </div>
+          </div>
+          <small class="form-text text-muted">Formatos aceitos: PDF, JPG, JPEG, PNG</small>
+        </div>
+        {% else %}
+        <div class="form-group">
+          <label for="invoice_file">Arquivo da Nota Fiscal</label>
+          <div class="input-group">
+            <div class="custom-file">
+              <input type="file" class="custom-file-input" id="invoice_file" name="invoice_file" accept=".pdf,.jpg,.jpeg,.png">
+              <label class="custom-file-label" for="invoice_file">Escolher arquivo</label>
+            </div>
+          </div>
+          <small class="form-text text-muted">Formatos aceitos: PDF, JPG, JPEG, PNG</small>
+        </div>
+        {% endif %}
+        
+        <div class="form-group">
+          <label for="invoice_number">Número da Nota Fiscal</label>
+          <input type="text" class="form-control" id="invoice_number" name="invoice_number" placeholder="Ex: NF-e 12345" value="{{ invoice.invoice_number if invoice else '' }}">
+        </div>
+        
+        <div class="form-group">
+          <label for="invoice_date">Data da Nota Fiscal</label>
+          <input type="date" class="form-control" id="invoice_date" name="invoice_date" value="{{ invoice.invoice_date.strftime('%Y-%m-%d') if invoice and invoice.invoice_date else '' }}">
+        </div>
+      </div>
+      {% endif %}
+    </div>
+    <!-- /.card-body -->
+
+    <div class="card-footer">
+      <button type="submit" class="btn btn-primary" id="saveButton">Salvar Alterações</button>
+      <a href="{{ url_for('transactions.index') }}" class="btn btn-default float-right">Cancelar</a>
+    </div>
+  </form>
+</div>
+<!-- /.card -->
+</div>
+<!-- /.col -->
+
+<div class="col-md-6">
+<div class="card card-info">
+  <div class="card-header">
+    <h3 class="card-title">Informações</h3>
+  </div>
+  <div class="card-body">
+    <div class="callout callout-info">
+      <h5>Edição de Transações</h5>
+      <p>Ao editar uma transação, você pode alterar:</p>
+      <ul>
+        <li>Tipo (receita ou despesa)</li>
+        <li>Conta associada</li>
+        <li>Valor</li>
+        <li>Descrição</li>
+        <li>Categoria</li>
+        <li>Status (confirmada ou pendente)</li>
+        {% if is_mei %}
+        <li>Status MEI (transação pessoal ou MEI)</li>
+        <li>Nota fiscal (adicionar, substituir ou remover)</li>
+        {% endif %}
+      </ul>
+    </div>
+    
+    <div class="callout callout-warning">
+      <h5>Atenção!</h5>
+      <p>Ao alterar o status de uma transação:</p>
+      <ul>
+        <li>De <strong>pendente</strong> para <strong>confirmada</strong>: o saldo da conta será atualizado.</li>
+        <li>De <strong>confirmada</strong> para <strong>pendente</strong>: o valor será removido do saldo da conta.</li>
+      </ul>
+      <p>Ao alterar o valor ou a conta de uma transação confirmada, os saldos serão recalculados automaticamente.</p>
+    </div>
+    
+    {% if is_mei %}
+    <div class="callout callout-success">
+      <h5>Transações MEI</h5>
+      <p>Marque a opção "Transação MEI" para:</p>
+      <ul>
+        <li>Separar transações pessoais das relacionadas ao seu negócio</li>
+        <li>Facilitar a declaração de impostos</li>
+        <li>Anexar notas fiscais às transações</li>
+        <li>Manter um controle financeiro organizado do seu MEI</li>
+      </ul>
+    </div>
+    {% endif %}
+  </div>
+  <!-- /.card-body -->
+</div>
+<!-- /.card -->
+</div>
+<!-- /.col -->
+</div>
+<!-- /.row -->
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Alternar categorias com base no tipo de transação
+document.addEventListener('DOMContentLoaded', function() {
+  const typeIncome = document.getElementById('type_income');
+  const typeExpense = document.getElementById('type_expense');
+  const incomeCategories = document.getElementById('income_categories');
+  const expenseCategories = document.getElementById('expense_categories');
+  const categorySelect = document.getElementById('category_id');
+  const editForm = document.getElementById('editTransactionForm');
+  const saveButton = document.getElementById('saveButton');
+
+  function updateCategories() {
+    // Limpar seleção atual
+    categorySelect.value = '';
+    
+    if (typeIncome.checked) {
+      incomeCategories.style.display = '';
+      expenseCategories.style.display = 'none';
+      
+      // Desabilitar opções de despesa
+      for (let i = 0; i < categorySelect.options.length; i++) {
+        const option = categorySelect.options[i];
+        if (option.parentNode.id === 'expense_categories') {
+          option.disabled = true;
+        } else {
+          option.disabled = false;
+        }
+      }
+    } else {
+      incomeCategories.style.display = 'none';
+      expenseCategories.style.display = '';
+      
+      // Desabilitar opções de receita
+      for (let i = 0; i < categorySelect.options.length; i++) {
+        const option = categorySelect.options[i];
+        if (option.parentNode.id === 'income_categories') {
+          option.disabled = true;
+        } else {
+          option.disabled = false;
+        }
+      }
+    }
+  }
+
+  typeIncome.addEventListener('change', updateCategories);
+  typeExpense.addEventListener('change', updateCategories);
+
+  // Destacar a categoria selecionada com sua cor
+  categorySelect.addEventListener('change', function() {
+    const selectedOption = this.options[this.selectedIndex];
+    if (selectedOption.value) {
+      const color = selectedOption.getAttribute('data-color');
+      this.style.borderColor = color;
+      this.style.boxShadow = `0 0 0 0.2rem ${color}40`;
+    } else {
+      this.style.borderColor = '';
+      this.style.boxShadow = '';
+    }
+  });
+
+  // Inicializar a cor da categoria selecionada
+  const selectedOption = categorySelect.options[categorySelect.selectedIndex];
+  if (selectedOption && selectedOption.value) {
+    const color = selectedOption.getAttribute('data-color');
+    categorySelect.style.borderColor = color;
+    categorySelect.style.boxShadow = `0 0 0 0.2rem ${color}40`;
+  }
+
+  // Garantir que o formulário seja enviado corretamente
+  saveButton.addEventListener('click', function(e) {
+    e.preventDefault();
+    editForm.submit();
+  });
+
+  {% if is_mei %}
+  // Atualizar nome do arquivo selecionado
+  $('.custom-file-input').on('change', function() {
+    var fileName = $(this).val().split('\\').pop();
+    $(this).next('.custom-file-label').addClass("selected").html(fileName);
+  });
+  {% endif %}
+});
+</script>
+{% endblock %}

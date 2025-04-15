@@ -1,0 +1,82 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Logs de Acesso{% endblock %}
+{% block breadcrumb %}Logs de Acesso{% endblock %}
+
+{% block content %}
+<div class="row">
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">
+        {% if filtered_user %}
+        Logs de Acesso do Usuário: {{ filtered_user.username }}
+        {% else %}
+        Logs de Acesso de Todos os Usuários
+        {% endif %}
+      </h3>
+      <div class="card-tools">
+        {% if filtered_user %}
+        <a href="{{ url_for('admin.access_logs') }}" class="btn btn-sm btn-default">
+          <i class="fas fa-users"></i> Ver Todos os Usuários
+        </a>
+        {% endif %}
+        <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <i class="fas fa-minus"></i>
+        </button>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body table-responsive p-0">
+      <table class="table table-hover text-nowrap">
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Usuário</th>
+            <th>Data/Hora</th>
+            <th>Endereço IP</th>
+            <th>Navegador</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in logs %}
+          <tr>
+            <td>{{ log.id }}</td>
+            <td>
+              {% for user in users %}
+                {% if user.id == log.user_id %}
+                  {{ user.username }}
+                {% endif %}
+              {% endfor %}
+              {% if not filtered_user %}
+              <a href="{{ url_for('admin.access_logs') }}?user_id={{ log.user_id }}" class="btn btn-xs btn-info ml-1">
+                <i class="fas fa-filter"></i>
+              </a>
+              {% endif %}
+            </td>
+            <td>{{ log.login_time|format_local_datetime('%d/%m/%Y %H:%M:%S') }}</td>
+            <td>{{ log.ip_address }}</td>
+            <td>{{ log.user_agent }}</td>
+          </tr>
+          {% else %}
+          <tr>
+            <td colspan="5" class="text-center">Nenhum log de acesso encontrado</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- /.card-body -->
+    <div class="card-footer clearfix">
+      <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-secondary">
+        <i class="fas fa-users"></i> Gerenciar Usuários
+      </a>
+      <a href="{{ url_for('admin.dashboard') }}" class="btn btn-sm btn-primary float-right">
+        <i class="fas fa-tachometer-alt"></i> Dashboard Admin
+      </a>
+    </div>
+  </div>
+  <!-- /.card -->
+</div>
+</div>
+{% endblock %}

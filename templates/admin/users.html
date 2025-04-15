@@ -1,0 +1,265 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Gerenciamento de Usuários{% endblock %}
+{% block breadcrumb %}Gerenciamento de Usuários{% endblock %}
+
+{% block content %}
+<style>
+.modal-body p, .modal-body div {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+
+.modal-content {
+  max-width: 100%;
+}
+
+.alert {
+  word-wrap: break-word;
+  word-break: break-word;
+  overflow-wrap: break-word;
+}
+</style>
+<div class="row">
+<div class="col-12">
+  <div class="card">
+    <div class="card-header">
+      <h3 class="card-title">Lista de Usuários</h3>
+      <div class="card-tools">
+        <div class="input-group input-group-sm" style="width: 150px;">
+          <input type="text" name="table_search" class="form-control float-right" placeholder="Buscar" id="userSearchInput">
+          <div class="input-group-append">
+            <button type="submit" class="btn btn-default">
+              <i class="fas fa-search"></i>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- /.card-header -->
+    <div class="card-body table-responsive p-0">
+      <table class="table table-hover text-nowrap" id="usersTable">
+        <!-- Adicionar botão para excluir usuário e mostrar status de aprovação -->
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Nome de Usuário</th>
+            <th>Email</th>
+            <th>Nome Completo</th>
+            <th>Tipo</th>
+            <th>Status</th>
+            <th>Aprovação</th>
+            <th>Criado em</th>
+            <th>Último Login</th>
+            <th>Ações</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for user in users %}
+          <tr>
+            <td>{{ user.id }}</td>
+            <td>{{ user.username }}</td>
+            <td>{{ user.email }}</td>
+            <td>{{ user.full_name or '-' }}</td>
+            <td>
+              {% if user.is_admin %}
+              <span class="badge bg-danger">Administrador</span>
+              {% else %}
+              <span class="badge bg-info">Usuário</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.is_active %}
+              <span class="badge bg-success">Ativo</span>
+              {% else %}
+              <span class="badge bg-warning">Inativo</span>
+              {% endif %}
+            </td>
+            <td>
+              {% if user.approval_status == 'approved' %}
+              <span class="badge bg-success">Aprovado</span>
+              {% elif user.approval_status == 'pending' %}
+              <span class="badge bg-warning">Pendente</span>
+              {% elif user.approval_status == 'rejected' %}
+              <span class="badge bg-danger">Rejeitado</span>
+              {% endif %}
+            </td>
+            <td>{{ user.created_at|format_local_datetime('%d/%m/%Y %H:%M') }}</td>
+            <td>{{ user.last_login|format_local_datetime('%d/%m/%Y %H:%M') if user.last_login else 'Nunca' }}</td>
+            <td>
+              <div class="btn-group">
+                <button type="button" class="btn btn-sm btn-info" data-toggle="modal" data-target="#editModal{{ user.id }}">
+                  <i class="fas fa-edit"></i> Editar
+                </button>
+                <button type="button" class="btn btn-sm btn-warning" data-toggle="modal" data-target="#resetPasswordModal{{ user.id }}">
+                  <i class="fas fa-key"></i> Resetar Senha
+                </button>
+                <form action="{{ url_for('admin.toggle_user_status', user_id=user.id) }}" method="post" class="d-inline">
+                  <button type="submit" class="btn btn-sm {{ 'btn-danger' if user.is_active else 'btn-success' }}">
+                    <i class="fas {{ 'fa-user-times' if user.is_active else 'fa-user-check' }}"></i> 
+                    {{ 'Desativar' if user.is_active else 'Ativar' }}
+                  </button>
+                </form>
+                <div class="btn-group">
+                  <button type="button" class="btn btn-sm btn-secondary dropdown-toggle" data-toggle="dropdown">
+                    <i class="fas fa-cog"></i> Mais
+                  </button>
+                  <div class="dropdown-menu">
+                    <a class="dropdown-item" href="{{ url_for('admin.access_logs') }}?user_id={{ user.id }}">
+                      <i class="fas fa-history"></i> Logs de Acesso
+                    </a>
+                    <button type="button" class="dropdown-item text-danger" data-toggle="modal" data-target="#resetDataModal{{ user.id }}">
+                      <i class="fas fa-trash"></i> Resetar Dados
+                    </button>
+                    <button type="button" class="dropdown-item text-danger" data-toggle="modal" data-target="#deleteUserModal{{ user.id }}">
+                      <i class="fas fa-user-slash"></i> Excluir Usuário
+                    </button>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Edição -->
+              <div class="modal fade" id="editModal{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="editModalLabel{{ user.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="editModalLabel{{ user.id }}">Editar Usuário</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="{{ url_for('admin.update_user', user_id=user.id) }}" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label for="username{{ user.id }}">Nome de Usuário</label>
+                          <input type="text" class="form-control" id="username{{ user.id }}" value="{{ user.username }}" disabled>
+                          <small class="form-text text-muted">O nome de usuário não pode ser alterado.</small>
+                        </div>
+                        <div class="form-group">
+                          <label for="email{{ user.id }}">Email</label>
+                          <input type="email" class="form-control" id="email{{ user.id }}" name="email" value="{{ user.email }}" required>
+                        </div>
+                        <div class="form-group">
+                          <label for="full_name{{ user.id }}">Nome Completo</label>
+                          <input type="text" class="form-control" id="full_name{{ user.id }}" name="full_name" value="{{ user.full_name or '' }}">
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-primary">Salvar Alterações</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Reset de Senha -->
+              <div class="modal fade" id="resetPasswordModal{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="resetPasswordModalLabel{{ user.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="resetPasswordModalLabel{{ user.id }}">Resetar Senha</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <form action="{{ url_for('admin.reset_password', user_id=user.id) }}" method="post">
+                      <div class="modal-body">
+                        <div class="form-group">
+                          <label for="new_password{{ user.id }}">Nova Senha</label>
+                          <input type="password" class="form-control" id="new_password{{ user.id }}" name="new_password" required>
+                        </div>
+                      </div>
+                      <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                        <button type="submit" class="btn btn-warning">Resetar Senha</button>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+              
+              <!-- Modal de Reset de Dados -->
+              <div class="modal fade" id="resetDataModal{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="resetDataModalLabel{{ user.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="resetDataModalLabel{{ user.id }}">Resetar Dados do Usuário</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Atenção!
+                        <p>Esta ação irá excluir <strong>TODAS</strong> as transações, contas bancárias e categorias personalizadas deste usuário.</p>
+                        <p>As categorias padrão serão recriadas, mas todos os outros dados serão perdidos permanentemente.</p>
+                        <p>Esta ação não pode ser desfeita!</p>
+                      </div>
+                      <p>Tem certeza que deseja resetar todos os dados do usuário <strong>{{ user.username }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('admin.reset_user_data', user_id=user.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Sim, Resetar Dados</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Modal de Exclusão de Usuário -->
+              <div class="modal fade" id="deleteUserModal{{ user.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteUserModalLabel{{ user.id }}" aria-hidden="true">
+                <div class="modal-dialog" role="document">
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <h5 class="modal-title" id="deleteUserModalLabel{{ user.id }}">Excluir Usuário</h5>
+                      <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                      </button>
+                    </div>
+                    <div class="modal-body">
+                      <div class="alert alert-danger">
+                        <i class="fas fa-exclamation-triangle"></i> Atenção!
+                        <p>Esta ação irá excluir <strong>PERMANENTEMENTE</strong> o usuário e todos os seus dados.</p>
+                        <p>Isso inclui todas as transações, contas bancárias, categorias, metas e alertas.</p>
+                        <p>Esta ação não pode ser desfeita!</p>
+                      </div>
+                      <p>Tem certeza que deseja excluir o usuário <strong>{{ user.username }}</strong>?</p>
+                    </div>
+                    <div class="modal-footer">
+                      <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                      <form action="{{ url_for('admin.delete_user', user_id=user.id) }}" method="post">
+                        <button type="submit" class="btn btn-danger">Sim, Excluir Usuário</button>
+                      </form>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    <!-- /.card-body -->
+  </div>
+  <!-- /.card -->
+</div>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Busca na tabela de usuários
+$(document).ready(function() {
+$("#userSearchInput").on("keyup", function() {
+  var value = $(this).val().toLowerCase();
+  $("#usersTable tbody tr").filter(function() {
+    $(this).toggle($(this).text().toLowerCase().indexOf(value) > -1)
+  });
+});
+});
+</script>
+{% endblock %}

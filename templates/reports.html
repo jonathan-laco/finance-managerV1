@@ -1,0 +1,988 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Relatórios{% endblock %}
+{% block breadcrumb %}Relatórios{% endblock %}
+
+{% block extra_css %}
+<style>
+@media print {
+  body {
+    font-size: 12pt;
+  }
+  .report-header {
+    text-align: center;
+    margin-bottom: 20px;
+  }
+  .report-header h1 {
+    font-size: 18pt;
+    margin-bottom: 5px;
+  }
+  .report-header p {
+    font-size: 10pt;
+    color: #666;
+  }
+  .report-summary {
+    margin-bottom: 20px;
+    border-bottom: 1px solid #ddd;
+    padding-bottom: 10px;
+  }
+  .report-table th {
+    background-color: #f4f4f4 !important;
+    color: #333 !important;
+  }
+  .report-footer {
+    margin-top: 30px;
+    font-size: 10pt;
+    text-align: center;
+    color: #666;
+  }
+  .no-print {
+    display: none !important;
+  }
+  .print-only {
+    display: block !important;
+  }
+  .print-full-width {
+    width: 100% !important;
+  }
+  .pagination-content {
+    display: none !important;
+  }
+  .all-transactions {
+    display: block !important;
+  }
+  .paginated-transactions {
+    display: none !important;
+  }
+  .chart-print-container {
+    page-break-inside: avoid;
+    margin-bottom: 20px;
+  }
+}
+.print-only {
+  display: none;
+}
+.all-transactions {
+  display: none;
+}
+</style>
+{% endblock %}
+
+{% block content %}
+<!-- Filtros - Apenas visíveis na tela, não na impressão -->
+<div class="row mb-3 no-print">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Filtros</h3>
+        <div class="card-tools">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <!-- /.card-header -->
+      <div class="card-body">
+        <form method="get" action="{{ url_for('reports.index') }}" class="row">
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Período:</label>
+              <select class="form-control" name="period" id="period-select">
+                <option value="month" {% if request.args.get('period') != 'year' %}selected{% endif %}>Mensal</option>
+                <option value="year" {% if request.args.get('period') == 'year' %}selected{% endif %}>Anual</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2" id="month-select-container" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Mês:</label>
+              <select class="form-control" name="month">
+                {% for i in range(1, 13) %}
+                <option value="{{ i }}" {% if current_month == i %}selected{% endif %}>
+                  {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][i-1] }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2">
+            <div class="form-group">
+              <label>Ano:</label>
+              <select class="form-control" name="year">
+                {% for i in range(current_year-5, current_year+1) %}
+                <option value="{{ i }}" {% if current_year == i %}selected{% endif %}>{{ i }}</option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Conta:</label>
+              <select class="form-control" name="account">
+                <option value="">Todas as contas</option>
+                {% for account in accounts %}
+                <option value="{{ account.id }}" {% if request.args.get('account')|int == account.id %}selected{% endif %}>
+                  {{ account.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Tipo:</label>
+              <select class="form-control" name="type">
+                <option value="">Todos os tipos</option>
+                <option value="receita" {% if request.args.get('type') == 'receita' %}selected{% endif %}>Receitas</option>
+                <option value="despesa" {% if request.args.get('type') == 'despesa' %}selected{% endif %}>Despesas</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Categoria:</label>
+              <select class="form-control" name="category">
+                <option value="">Todas as categorias</option>
+                {% for category in categories %}
+                <option value="{{ category.id }}" {% if request.args.get('category')|int == category.id %}selected{% endif %}>
+                  {{ category.name }}
+                </option>
+                {% endfor %}
+              </select>
+            </div>
+          </div>
+          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+            <div class="form-group">
+              <label>Itens por página:</label>
+              <select class="form-control" name="per_page">
+                <option value="10" {% if request.args.get('per_page', '20')|int == 10 %}selected{% endif %}>10 itens</option>
+                <option value="20" {% if request.args.get('per_page', '20')|int == 20 %}selected{% endif %}>20 itens</option>
+                <option value="50" {% if request.args.get('per_page', '20')|int == 50 %}selected{% endif %}>50 itens</option>
+              </select>
+            </div>
+          </div>
+          <div class="col-md-12 mt-2">
+            <button type="submit" class="btn btn-info">Filtrar</button>
+            <a href="{{ url_for('reports.index') }}" class="btn btn-default">Limpar Filtros</a>
+          </div>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Botões de ação - Apenas visíveis na tela, não na impressão -->
+<div class="row mb-3 no-print">
+  <div class="col-md-12 text-right">
+    <button type="button" class="btn btn-primary" onclick="printReport()">
+      <i class="fas fa-print"></i> Imprimir Relatório (Tabela)
+    </button>
+    <button type="button" class="btn btn-success" onclick="exportToExcel()">
+      <i class="fas fa-file-excel"></i> Exportar para Excel
+    </button>
+    <button type="button" class="btn btn-info" onclick="window.print()">
+      <i class="fas fa-print"></i> Imprimir Relatório Completo
+    </button>
+  </div>
+</div>
+
+<!-- Cabeçalho do Relatório - Visível apenas na impressão -->
+<div class="report-header print-only">
+  <h1>Relatório Financeiro</h1>
+  {% if request.args.get('period') == 'year' %}
+  <p>Período: Ano {{ current_year }}</p>
+  {% else %}
+  <p>Período: {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][current_month-1] }}/{{ current_year }}</p>
+  {% endif %}
+  <p>Emitido em: {{ current_date }}</p>
+</div>
+
+<!-- Resumo Financeiro -->
+<div class="row report-summary">
+  <div class="col-md-4">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_income) }}</h3>
+        <p>Total de Receitas</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-arrow-up"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_expense) }}</h3>
+        <p>Total de Despesas</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-arrow-down"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>R$ {{ "%.2f"|format(total_income - total_expense) }}</h3>
+        <p>Saldo do Período</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-wallet"></i>
+      </div>
+    </div>
+  </div>
+</div>
+
+{% if request.args.get('period') == 'year' %}
+<!-- Relatório Anual -->
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Relatório Anual - {{ current_year }}</h3>
+      </div>
+      <div class="card-body">
+        <div class="chart chart-print-container">
+          <canvas id="annualChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
+        </div>
+        
+        <div class="table-responsive mt-4">
+          <table class="table table-bordered table-striped" id="annual-table">
+            <thead>
+              <tr>
+                <th>Mês</th>
+                <th>Receitas</th>
+                <th>Despesas</th>
+                <th>Saldo</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for month_data in annual_data %}
+              <tr>
+                <td>{{ month_data.month_name }}</td>
+                <td class="text-success">R$ {{ "%.2f"|format(month_data.income) }}</td>
+                <td class="text-danger">R$ {{ "%.2f"|format(month_data.expense) }}</td>
+                <td class="{% if month_data.income - month_data.expense >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  R$ {{ "%.2f"|format(month_data.income - month_data.expense) }}
+                </td>
+              </tr>
+              {% endfor %}
+              <tr class="table-active font-weight-bold">
+                <td>Total Anual</td>
+                <td class="text-success">R$ {{ "%.2f"|format(annual_income) }}</td>
+                <td class="text-danger">R$ {{ "%.2f"|format(annual_expense) }}</td>
+                <td class="{% if annual_income - annual_expense >= 0 %}text-success{% else %}text-danger{% endif %}">
+                  R$ {{ "%.2f"|format(annual_income - annual_expense) }}
+                </td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+{% else %}
+<!-- Gráficos do Relatório Mensal -->
+<div class="row">
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Despesas por Categoria</h3>
+      </div>
+      <div class="card-body">
+        <div class="chart chart-print-container">
+          <canvas id="expenseCategoryChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Evolução Diária</h3>
+      </div>
+      <div class="card-body">
+        <div class="chart chart-print-container">
+          <canvas id="dailyChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mt-4">
+  <div class="col-md-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Evolução Mensal (Últimos 6 meses)</h3>
+      </div>
+      <div class="card-body">
+        <div class="chart chart-print-container">
+          <canvas id="monthlyChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transações do Período - Versão paginada (visível apenas na tela) -->
+<div class="row paginated-transactions mt-4">
+  <div class="col-12 print-full-width">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Transações do Período</h3>
+        <div class="card-tools no-print">
+          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+            <i class="fas fa-minus"></i>
+          </button>
+        </div>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap report-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Status</th>
+              <th class="no-print">Ações</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in transactions %}
+            <tr>
+              <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>
+                {% for category in current_user.categories %}
+                  {% if category.id == transaction.category_id %}
+                    <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                      {{ category.name }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% for account in accounts %}
+                  {% if account.id == transaction.account_id %}
+                    {{ account.name }}
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% if transaction.type == 'receita' %}
+                <span class="badge bg-success">Receita</span>
+                {% else %}
+                <span class="badge bg-danger">Despesa</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+              <td>
+                {% if transaction.status == 'confirmado' %}
+                <span class="badge bg-success">Confirmado</span>
+                {% elif transaction.status == 'pendente' %}
+                <span class="badge bg-warning">Pendente</span>
+                {% else %}
+                <span class="badge bg-secondary">Cancelado</span>
+                {% endif %}
+              </td>
+              <td class="no-print">
+                <div class="btn-group">
+                  <a href="{{ url_for('transactions.edit', transaction_id=transaction.id) }}" class="btn btn-xs btn-warning">
+                    <i class="fas fa-edit"></i> Editar
+                  </a>
+                  {% if transaction.status == 'pendente' %}
+                    <a href="{{ url_for('transactions.confirm', transaction_id=transaction.id) }}" class="btn btn-xs btn-success">
+                      <i class="fas fa-check"></i> Confirmar
+                    </a>
+                    <a href="{{ url_for('transactions.cancel', transaction_id=transaction.id) }}" class="btn btn-xs btn-info">
+                      <i class="fas fa-times"></i> Cancelar
+                    </a>
+                  {% endif %}
+                </div>
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="8" class="text-center">Nenhuma transação no período</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Transações do Período - Versão completa (visível apenas na impressão) -->
+<div class="row all-transactions mt-4">
+  <div class="col-12 print-full-width">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Transações do Período</h3>
+      </div>
+      <div class="card-body table-responsive p-0">
+        <table class="table table-hover text-nowrap report-table">
+          <thead>
+            <tr>
+              <th>Data</th>
+              <th>Descrição</th>
+              <th>Categoria</th>
+              <th>Conta</th>
+              <th>Tipo</th>
+              <th>Valor</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for transaction in all_transactions %}
+            <tr>
+              <td>{{ transaction.date.strftime('%d/%m/%Y') }}</td>
+              <td>{{ transaction.description }}</td>
+              <td>
+                {% for category in current_user.categories %}
+                  {% if category.id == transaction.category_id %}
+                    <span class="badge" style="background-color: {{ category.color }}; color: white;">
+                      {{ category.name }}
+                    </span>
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% for account in accounts %}
+                  {% if account.id == transaction.account_id %}
+                    {{ account.name }}
+                  {% endif %}
+                {% endfor %}
+              </td>
+              <td>
+                {% if transaction.type == 'receita' %}
+                <span class="badge bg-success">Receita</span>
+                {% else %}
+                <span class="badge bg-danger">Despesa</span>
+                {% endif %}
+              </td>
+              <td>R$ {{ "%.2f"|format(transaction.amount) }}</td>
+              <td>
+                {% if transaction.status == 'confirmado' %}
+                <span class="badge bg-success">Confirmado</span>
+                {% elif transaction.status == 'pendente' %}
+                <span class="badge bg-warning">Pendente</span>
+                {% else %}
+                <span class="badge bg-secondary">Cancelado</span>
+                {% endif %}
+              </td>
+            </tr>
+            {% else %}
+            <tr>
+              <td colspan="7" class="text-center">Nenhuma transação no período</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Adicionar paginação -->
+{% if pagination and pagination.pages > 1 %}
+<div class="d-flex justify-content-center mt-4 no-print pagination-content">
+  <ul class="pagination">
+  {% if pagination.has_prev %}
+    <li class="page-item">
+      {% set args = request.args.copy() %}
+      {% set _ = args.pop('page', None) %}
+      <a class="page-link" href="{{ url_for('reports.index', page=pagination.prev_num, **args) }}">&laquo;</a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">&laquo;</span>
+    </li>
+  {% endif %}
+
+  {% for page in pagination.iter_pages() %}
+    {% if page %}
+      {% if page != pagination.page %}
+        {% set args = request.args.copy() %}
+        {% set _ = args.pop('page', None) %}
+        <li class="page-item">
+          <a class="page-link" href="{{ url_for('reports.index', page=page, **args) }}">{{ page }}</a>
+        </li>
+      {% else %}
+        <li class="page-item active">
+          <span class="page-link">{{ page }}</span>
+        </li>
+      {% endif %}
+    {% else %}
+      <li class="page-item disabled">
+        <span class="page-link">...</span>
+      </li>
+    {% endif %}
+  {% endfor %}
+
+  {% if pagination.has_next %}
+    {% set args = request.args.copy() %}
+    {% set _ = args.pop('page', None) %}
+    <li class="page-item">
+      <a class="page-link" href="{{ url_for('reports.index', page=pagination.next_num, **args) }}">&raquo;</a>
+    </li>
+  {% else %}
+    <li class="page-item disabled">
+      <span class="page-link">&raquo;</span>
+    </li>
+  {% endif %}
+  </ul>
+</div>
+{% endif %}
+{% endif %}
+
+<!-- Rodapé do Relatório - Visível apenas na impressão -->
+<div class="report-footer print-only">
+  <p>Sistema de Gerenciamento Financeiro - Página 1</p>
+  <p>Este relatório contém informações confidenciais e é destinado apenas para uso pessoal.</p>
+</div>
+{% endblock %}
+
+{% block scripts %}
+<script>
+// Função para exportar para Excel
+function exportToExcel() {
+  // Implementação básica de exportação para Excel
+  let table;
+  
+  if (document.getElementById('annual-table')) {
+    table = document.getElementById('annual-table');
+  } else {
+    table = document.querySelector('.report-table');
+  }
+  
+  let html = table.outerHTML;
+
+  // Converter para formato compatível com Excel
+  let uri = 'data:application/vnd.ms-excel;base64,';
+  let template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>';
+
+  let base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) };
+  let format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) };
+
+  let ctx = {table: html};
+  let downloadLink = document.createElement("a");
+  downloadLink.href = uri + base64(format(template, ctx));
+  downloadLink.download = "relatorio_financeiro.xls";
+  document.body.appendChild(downloadLink);
+  downloadLink.click();
+  document.body.removeChild(downloadLink);
+}
+
+// Função para imprimir relatório
+function printReport() {
+  // Obter valores do servidor via variáveis JavaScript
+  const currentMonth = {{ current_month }};
+  const currentYear = {{ current_year }};
+  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
+  const isPeriodYear = {% if request.args.get('period') == 'year' %}true{% else %}false{% endif %};
+
+  // Criar conteúdo de impressão personalizado
+  const printContent = document.createElement('div');
+  printContent.classList.add('print-only');
+
+  // Adicionar título e subtítulo
+  const title = document.createElement('div');
+  title.style.textAlign = 'center';
+  title.style.fontSize = '18pt';
+  title.style.fontWeight = 'bold';
+  title.style.marginBottom = '10px';
+  title.textContent = 'Relatório Financeiro';
+  printContent.appendChild(title);
+
+  const period = document.createElement('div');
+  period.style.textAlign = 'center';
+  period.style.fontSize = '12pt';
+  period.style.marginBottom = '20px';
+  
+  if (isPeriodYear) {
+    period.textContent = `Período: Ano ${currentYear}`;
+  } else {
+    period.textContent = `Período: ${monthNames[currentMonth-1]}/${currentYear}`;
+  }
+  
+  printContent.appendChild(period);
+
+  // Adicionar informações do relatório
+  const info = document.createElement('div');
+  info.style.marginBottom = '20px';
+
+  const dateInfo = document.createElement('div');
+  dateInfo.textContent = `Data de geração: ${new Date().toLocaleString('pt-BR')}`;
+  info.appendChild(dateInfo);
+
+  printContent.appendChild(info);
+
+  // Adicionar resumo financeiro
+  const summary = document.createElement('div');
+  summary.style.marginBottom = '20px';
+  summary.style.display = 'flex';
+  summary.style.justifyContent = 'space-between';
+
+  const income = document.createElement('div');
+  income.style.flex = '1';
+  income.style.padding = '10px';
+  income.style.backgroundColor = '#d4edda';
+  income.style.borderRadius = '5px';
+  income.style.marginRight = '10px';
+  income.innerHTML = `<strong>Total de Receitas:</strong> R$ {{ "%.2f"|format(total_income) }}`;
+  summary.appendChild(income);
+
+  const expense = document.createElement('div');
+  expense.style.flex = '1';
+  expense.style.padding = '10px';
+  expense.style.backgroundColor = '#f8d7da';
+  expense.style.borderRadius = '5px';
+  expense.style.marginRight = '10px';
+  expense.innerHTML = `<strong>Total de Despesas:</strong> R$ {{ "%.2f"|format(total_expense) }}`;
+  summary.appendChild(expense);
+
+  const balance = document.createElement('div');
+  balance.style.flex = '1';
+  balance.style.padding = '10px';
+  balance.style.backgroundColor = '#d1ecf1';
+  balance.style.borderRadius = '5px';
+  balance.innerHTML = `<strong>Saldo do Período:</strong> R$ {{ "%.2f"|format(total_income - total_expense) }}`;
+  summary.appendChild(balance);
+
+  printContent.appendChild(summary);
+
+  // Usar a tabela existente para impressão
+  let tableToClone;
+  
+  if (isPeriodYear) {
+    // Para relatório anual, usar a tabela anual existente
+    tableToClone = document.getElementById('annual-table');
+  } else {
+    // Para relatório mensal, usar a tabela de transações
+    tableToClone = document.querySelector('.all-transactions .report-table');
+    if (!tableToClone) {
+      tableToClone = document.querySelector('.paginated-transactions .report-table');
+    }
+  }
+  
+  if (tableToClone) {
+    const tableClone = tableToClone.cloneNode(true);
+    
+    // Remover a coluna de ações se existir
+    const actionCells = tableClone.querySelectorAll('th:last-child, td:last-child');
+    if (actionCells.length > 0 && actionCells[0].classList.contains('no-print')) {
+      actionCells.forEach(cell => cell.remove());
+    }
+    
+    tableClone.style.width = '100%';
+    tableClone.style.borderCollapse = 'collapse';
+    tableClone.style.marginBottom = '20px';
+    
+    // Estilizar a tabela para impressão
+    const cells = tableClone.querySelectorAll('th, td');
+    cells.forEach(cell => {
+      cell.style.border = '1px solid #ddd';
+      cell.style.padding = '8px';
+      cell.style.textAlign = 'left';
+    });
+    
+    const headers = tableClone.querySelectorAll('th');
+    headers.forEach(header => {
+      header.style.backgroundColor = '#f4f4f4';
+      header.style.color = '#333';
+      header.style.fontWeight = 'bold';
+    });
+    
+    printContent.appendChild(tableClone);
+  }
+
+  // Adicionar rodapé
+  const footer = document.createElement('div');
+  footer.style.marginTop = '30px';
+  footer.style.fontSize = '10pt';
+  footer.style.textAlign = 'center';
+  footer.style.color = '#666';
+  footer.innerHTML = `Sistema de Gerenciamento Financeiro<br>Este relatório contém informações confidenciais e é destinado apenas para uso pessoal.`;
+  printContent.appendChild(footer);
+
+  // Substituir temporariamente o conteúdo para impressão
+  const originalContent = document.body.innerHTML;
+  document.body.innerHTML = printContent.outerHTML;
+
+  // Imprimir
+  window.print();
+
+  // Restaurar conteúdo original
+  document.body.innerHTML = originalContent;
+
+  // Recarregar scripts necessários
+  location.reload();
+}
+
+// Alternar visibilidade dos filtros mensais/anuais
+document.addEventListener('DOMContentLoaded', function() {
+  const periodSelect = document.getElementById('period-select');
+  const monthSelectContainer = document.getElementById('month-select-container');
+  const monthlyFilters = document.querySelectorAll('.monthly-filter');
+  
+  if (periodSelect) {
+    periodSelect.addEventListener('change', function() {
+      if (this.value === 'year') {
+        monthSelectContainer.style.display = 'none';
+        monthlyFilters.forEach(filter => {
+          filter.style.display = 'none';
+        });
+      } else {
+        monthSelectContainer.style.display = '';
+        monthlyFilters.forEach(filter => {
+          filter.style.display = '';
+        });
+      }
+    });
+  }
+
+  // Inicializar gráficos apenas se os elementos existirem
+  {% if request.args.get('period') == 'year' %}
+  // Renderizar gráfico anual
+  var annualChartElement = document.getElementById('annualChart');
+  if (annualChartElement) {
+    var annualChartCtx = annualChartElement.getContext('2d');
+    var annualChart = new Chart(annualChartCtx, {
+      type: 'bar',
+      data: {
+        labels: [{% for month_data in annual_data %}'{{ month_data.month_name }}',{% endfor %}],
+        datasets: [
+          {
+            label: 'Receitas',
+            backgroundColor: 'rgba(40, 167, 69, 0.7)',
+            borderColor: '#28a745',
+            borderWidth: 1,
+            data: [{% for month_data in annual_data %}{{ month_data.income }},{% endfor %}]
+          },
+          {
+            label: 'Despesas',
+            backgroundColor: 'rgba(220, 53, 69, 0.7)',
+            borderColor: '#dc3545',
+            borderWidth: 1,
+            data: [{% for month_data in annual_data %}{{ month_data.expense }},{% endfor %}]
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                var value = context.raw || 0;
+                return label + ': R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  {% else %}
+  // Gráfico de Categorias de Despesas
+  var expenseCategoryElement = document.getElementById('expenseCategoryChart');
+  if (expenseCategoryElement) {
+    var expenseCategoryCtx = expenseCategoryElement.getContext('2d');
+    var expenseCategoryChart = new Chart(expenseCategoryCtx, {
+      type: 'doughnut',
+      data: {
+        labels: [
+          {% for category, amount in expense_categories.items() %}
+            '{{ category }}',
+          {% endfor %}
+        ],
+        datasets: [{
+          data: [
+            {% for category, amount in expense_categories.items() %}
+              {{ amount }},
+            {% endfor %}
+          ],
+          backgroundColor: [
+            {% for category, amount in expense_categories.items() %}
+              '{{ expense_colors[category] }}',
+            {% endfor %}
+          ]
+        }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: {
+            position: 'right',
+          },
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.label || '';
+                var value = context.raw || 0;
+                return label + ': R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Gráfico de Evolução Diária
+  var dailyChartElement = document.getElementById('dailyChart');
+  if (dailyChartElement) {
+    var dailyCtx = dailyChartElement.getContext('2d');
+    var dailyChart = new Chart(dailyCtx, {
+      type: 'line',
+      data: {
+        labels: [
+          {% for day, values in daily_data.items() %}
+            '{{ day }}',
+          {% endfor %}
+        ],
+        datasets: [
+          {
+            label: 'Receitas',
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+            data: [
+              {% for day, values in daily_data.items() %}
+                {{ values['receita'] }},
+              {% endfor %}
+            ],
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Despesas',
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+            data: [
+              {% for day, values in daily_data.items() %}
+                {{ values['despesa'] }},
+              {% endfor %}
+            ],
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                var value = context.raw || 0;
+                return label + ': R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+
+  // Gráfico de Evolução Mensal
+  var monthlyChartElement = document.getElementById('monthlyChart');
+  if (monthlyChartElement) {
+    var monthlyCtx = monthlyChartElement.getContext('2d');
+    var monthlyChart = new Chart(monthlyCtx, {
+      type: 'line',
+      data: {
+        labels: [
+          {% for month in monthly_data.keys() %}
+            '{{ month }}',
+          {% endfor %}
+        ],
+        datasets: [
+          {
+            label: 'Receitas',
+            borderColor: '#28a745',
+            backgroundColor: 'rgba(40, 167, 69, 0.2)',
+            data: [
+              {% for month, values in monthly_data.items() %}
+                {{ values['receita'] }},
+              {% endfor %}
+            ],
+            fill: true,
+            tension: 0.4
+          },
+          {
+            label: 'Despesas',
+            borderColor: '#dc3545',
+            backgroundColor: 'rgba(220, 53, 69, 0.2)',
+            data: [
+              {% for month, values in monthly_data.items() %}
+                {{ values['despesa'] }},
+              {% endfor %}
+            ],
+            fill: true,
+            tension: 0.4
+          }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        scales: {
+          y: {
+            beginAtZero: true,
+            ticks: {
+              callback: function(value) {
+                return 'R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        },
+        plugins: {
+          tooltip: {
+            callbacks: {
+              label: function(context) {
+                var label = context.dataset.label || '';
+                var value = context.raw || 0;
+                return label + ': R$ ' + value.toFixed(2);
+              }
+            }
+          }
+        }
+      }
+    });
+  }
+  {% endif %}
+});
+</script>
+{% endblock %}

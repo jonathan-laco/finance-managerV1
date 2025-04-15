@@ -1,0 +1,54 @@
+{% extends 'base.html' %}
+
+{% block page_title %}Configurações do Sistema{% endblock %}
+{% block breadcrumb %}Configurações do Sistema{% endblock %}
+
+{% block content %}
+<div class="row">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-header">
+        <h3 class="card-title">Configurações Gerais</h3>
+      </div>
+      <div class="card-body">
+        <form action="{{ url_for('admin.system_config') }}" method="post">
+          <div class="form-group">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="registration_enabled" name="registration_enabled" {% if configs.registration_enabled %}checked{% endif %}>
+              <label class="custom-control-label" for="registration_enabled">Permitir registro de novos usuários</label>
+            </div>
+            <small class="form-text text-muted">Se desativado, novos usuários não poderão se registrar no sistema.</small>
+          </div>
+          
+          <div class="form-group">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="mei_registration_enabled" name="mei_registration_enabled" {% if configs.mei_registration_enabled %}checked{% endif %}>
+              <label class="custom-control-label" for="mei_registration_enabled">Permitir registro como MEI</label>
+            </div>
+            <small class="form-text text-muted">Se desativado, usuários não poderão se registrar como MEI.</small>
+          </div>
+          
+          <div class="form-group">
+            <div class="custom-control custom-switch">
+              <input type="checkbox" class="custom-control-input" id="require_admin_approval" name="require_admin_approval" {% if configs.require_admin_approval %}checked{% endif %}>
+              <label class="custom-control-label" for="require_admin_approval">Exigir aprovação do administrador para novos cadastros</label>
+            </div>
+            <small class="form-text text-muted">Se ativado, novos usuários precisarão ser aprovados por um administrador antes de acessar o sistema.</small>
+          </div>
+          
+          <div class="alert alert-info">
+            <i class="fas fa-info-circle"></i> Informações importantes:
+            <ul>
+              <li>Desativar o registro não afeta os usuários já cadastrados.</li>
+              <li>Desativar o registro MEI não afeta os usuários MEI já cadastrados.</li>
+              <li>Ativar a aprovação de cadastros só afeta novos registros, usuários existentes não serão afetados.</li>
+            </ul>
+          </div>
+          
+          <button type="submit" class="btn btn-primary">Salvar Configurações</button>
+        </form>
+      </div>
+    </div>
+  </div>
+</div>
+{% endblock %}
