@@ -1,1 +1,3 @@
 ./instance/finance.db
+*.pyc
+__pycache__/
