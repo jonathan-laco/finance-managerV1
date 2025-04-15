@@ -24,7 +24,6 @@ class User(db.Model, UserMixin):
     transactions = db.relationship('Transaction', backref='owner', lazy=True)
     categories = db.relationship('Category', backref='owner', lazy=True)
     access_logs = db.relationship('UserAccessLog', backref='user', lazy=True)
-    alerts = db.relationship('Alert', backref='owner', lazy=True)
     goals = db.relationship('Goal', backref='owner', lazy=True)
     
     def set_password(self, password):
