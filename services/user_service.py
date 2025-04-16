@@ -181,14 +181,18 @@ def log_user_login(user_id):
     db.session.commit()
     return True
 
-def get_user_access_logs(user_id=None, limit=100):
+def get_user_access_logs(user_id=None, page=1, per_page=20):
     """
-    Retorna os logs de acesso de um usuário ou de todos os usuários
+    Retorna os logs de acesso de um usuário ou de todos os usuários, com paginação
     """
     if user_id:
-        return UserAccessLog.query.filter_by(user_id=user_id).order_by(UserAccessLog.login_time.desc()).limit(limit).all()
+        query = UserAccessLog.query.filter_by(user_id=user_id).order_by(UserAccessLog.login_time.desc())
     else:
-        return UserAccessLog.query.order_by(UserAccessLog.login_time.desc()).limit(limit).all()
+        query = UserAccessLog.query.order_by(UserAccessLog.login_time.desc())
+    
+    # Implementar paginação
+    pagination = query.paginate(page=page, per_page=per_page, error_out=False)
+    return pagination
 
 def toggle_user_status(user_id):
     """
@@ -243,7 +247,7 @@ def delete_user(user_id):
     """
     Exclui um usuário e todos os seus dados
     """
-    from models import User, Transaction, BankAccount, Category, Invoice, Goal, UserAccessLog
+    from models import User, Transaction, BankAccount, Category, Invoice, Alert, Goal, UserAccessLog
     
     user = User.query.get(user_id)
     if not user:
@@ -270,6 +274,8 @@ def delete_user(user_id):
     # Excluir todas as categorias do usuário
     Category.query.filter_by(user_id=user_id).delete()
     
+    # Excluir todos os alertas do usuário
+    Alert.query.filter_by(user_id=user_id).delete()
     
     # Excluir todas as metas do usuário
     Goal.query.filter_by(user_id=user_id).delete()

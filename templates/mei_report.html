@@ -262,7 +262,17 @@
   </div>
 </div>
 
-{% if annual_income >= 80000 %}
+{% if annual_income > 81000 %}
+<div class="row mb-4">
+  <div class="col-md-12">
+    <div class="alert alert-danger" style="animation: blink 1s infinite;">
+      <h5><i class="icon fas fa-exclamation-triangle"></i> Atenção! Limite de faturamento MEI excedido!</h5>
+      <p>Seu faturamento anual de <strong>R$ {{ "%.2f"|format(annual_income) }}</strong> ultrapassou o limite de R$ 81.000,00 para MEI.</p>
+      <p>Considere consultar um contador imediatamente para regularizar sua situação.</p>
+    </div>
+  </div>
+</div>
+{% elif annual_income >= 80000 %}
 <div class="row mb-4">
   <div class="col-md-12">
     <div class="alert alert-danger">
@@ -283,6 +293,7 @@
   </div>
 </div>
 {% endif %}
+
 
 {% if request.args.get('period') == 'year' %}
 <!-- Relatório Anual -->
@@ -418,9 +429,11 @@
                     <i class="fas fa-edit"></i> Editar
                   </a>
                   {% if transaction.has_invoice %}
-                  <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" class="btn btn-xs btn-primary">
-                    <i class="fas fa-file-download"></i> Nota Fiscal
-                  </a>
+                  <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" 
+                  class="btn btn-xs btn-primary" 
+                  target="_blank">
+                 <i class="fas fa-file-download"></i> Nota Fiscal
+               </a>
                   {% endif %}
                 </div>
               </td>

@@ -154,9 +154,11 @@
                 <i class="fas fa-edit"></i> Editar
               </a>
               {% if transaction.has_invoice %}
-              <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" class="btn btn-xs btn-primary">
-                <i class="fas fa-file-download"></i> Nota Fiscal
-              </a>
+              <a href="{{ url_for('transactions.download_invoice', transaction_id=transaction.id) }}" 
+              class="btn btn-xs btn-primary" 
+              target="_blank">
+             <i class="fas fa-file-download"></i> Nota Fiscal
+           </a>
               {% endif %}
               {% if transaction.status == 'pendente' %}
               <a href="{{ url_for('transactions.confirm', transaction_id=transaction.id) }}" class="btn btn-xs btn-success">

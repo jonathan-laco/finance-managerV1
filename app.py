@@ -94,7 +94,16 @@ def create_app(config_class=Config):
             db.session.commit()
             
     @app.errorhandler(404)
-    def not_found_error(error):
+    def handle_404_error(e):
+        # Verificar se o usuário está autenticado
+        if not current_user.is_authenticated:
+            # Retornar um 404 externo para usuários não autenticados
+            return render_template('errors/404_external.html'), 404
+
+        # Logar o erro no console
+        app.logger.error(f"Erro 404 capturado: Rota {request.path} não encontrada.")
+
+        # Retornar um 404 interno para usuários autenticados
         return render_template('errors/404.html'), 404
     
     @app.errorhandler(500)
