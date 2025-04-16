@@ -8,6 +8,7 @@
 .dashboard-container {
   min-height: 400px;
 }
+
 .card-draggable {
   margin-bottom: 20px;
 }
@@ -348,8 +349,8 @@
 {% block scripts %}
 <script>
 // Gráfico de Categorias de Despesas
-var expenseCategoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
-var expenseCategoryChart = new Chart(expenseCategoryCtx, {
+const expenseCategoryCtx = document.getElementById('expenseCategoryChart').getContext('2d');
+const expenseCategoryChart = new Chart(expenseCategoryCtx, {
   type: 'doughnut',
   data: {
     labels: [
@@ -379,10 +380,10 @@ var expenseCategoryChart = new Chart(expenseCategoryCtx, {
       },
       tooltip: {
         callbacks: {
-          label: function(context) {
-            var label = context.label || '';
-            var value = context.raw || 0;
-            return label + ': R$ ' + value.toFixed(2);
+          label: (context) => {
+            const label = context.label || '';
+            const value = context.raw || 0;
+            return `${label}: R$ ${value.toFixed(2)}`;
           }
         }
       }
@@ -391,8 +392,8 @@ var expenseCategoryChart = new Chart(expenseCategoryCtx, {
 });
 
 // Gráfico de Evolução Mensal
-var monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
-var monthlyChart = new Chart(monthlyCtx, {
+const monthlyCtx = document.getElementById('monthlyChart').getContext('2d');
+const monthlyChart = new Chart(monthlyCtx, {
   type: 'line',
   data: {
     labels: [
@@ -434,19 +435,17 @@ var monthlyChart = new Chart(monthlyCtx, {
       y: {
         beginAtZero: true,
         ticks: {
-          callback: function(value) {
-            return 'R$ ' + value.toFixed(2);
-          }
+          callback: (value) => `R$ ${value.toFixed(2)}`
         }
       }
     },
     plugins: {
       tooltip: {
         callbacks: {
-          label: function(context) {
-            var label = context.dataset.label || '';
-            var value = context.raw || 0;
-            return label + ': R$ ' + value.toFixed(2);
+          label: (context) => {
+            const label = context.dataset.label || '';
+            const value = context.raw || 0;
+            return `${label}: R$ ${value.toFixed(2)}`;
           }
         }
       }
@@ -455,89 +454,69 @@ var monthlyChart = new Chart(monthlyCtx, {
 });
 
 // Configuração para arrastar e soltar cards
-$(function() {
-  // Inicializar layout salvo, se existir
-  var savedLayout = {{ dashboard_layout|tojson|safe if dashboard_layout else 'null' }};
+document.addEventListener('DOMContentLoaded', () => {
+  const savedLayout = {{ dashboard_layout|tojson|safe if dashboard_layout else 'null' }};
+
   if (savedLayout) {
     try {
-      // Reorganizar os cards com base no layout salvo
-      for (var i = 0; i < savedLayout.length; i++) {
-        var cardId = savedLayout[i].id;
-        var colSize = savedLayout[i].size;
-        var cardElement = $('[data-card-id="' + cardId + '"]');
-        
-        // Atualizar tamanho da coluna
-        if (cardElement.length) {
-          cardElement.removeClass().addClass('col-md-' + colSize);
+      savedLayout.forEach(({ id, size }) => {
+        const cardElement = document.querySelector(`[data-card-id="${id}"]`);
+        if (cardElement) {
+          cardElement.className = `col-md-${size}`;
         }
-      }
+      });
     } catch (e) {
-      console.error("Erro ao carregar layout:", e);
+      console.error('Erro ao carregar layout:', e);
     }
   }
 
   // Tornar os cards arrastáveis
-  $("#dashboard-layout").sortable({
+  const dashboardLayout = document.getElementById('dashboard-layout');
+  $(dashboardLayout).sortable({
     handle: '.card-header',
     placeholder: 'card-placeholder',
     forcePlaceholderSize: true,
-    tolerance: "pointer",
-    cursor: "move"
+    tolerance: 'pointer',
+    cursor: 'move',
+    update: saveLayout
   });
 
   // Função para salvar layout automaticamente
-  function saveLayout() {
-    var layout = [];
-    
-    // Coletar informações de cada card
-    $("#dashboard-layout > div").each(function() {
-      var cardId = $(this).data('card-id');
-      var colSize = parseInt($(this).attr('class').match(/col-md-(\d+)/)[1]);
-      
-      layout.push({
-        id: cardId,
-        size: colSize
-      });
+  const saveLayout = () => {
+    const layout = Array.from(dashboardLayout.children).map((card) => {
+      const cardId = card.dataset.cardId;
+      const colSize = parseInt(card.className.match(/col-md-(\d+)/)[1]);
+      return { id: cardId, size: colSize };
     });
-    
-    // Enviar para o servidor
-    $.ajax({
-      url: "{{ url_for('dashboard.save_layout') }}",
-      type: "POST",
-      contentType: "application/json",
-      data: JSON.stringify({ layout: layout }),
-      success: function(response) {
-        if (response.success) {
+
+    fetch('{{ url_for("dashboard.save_layout") }}', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ layout })
+    })
+      .then((response) => response.json())
+      .then((data) => {
+        if (data.success) {
           console.log('Layout salvo automaticamente');
         }
-      },
-      error: function() {
-        console.error('Erro ao salvar layout');
-      }
-    });
-  }
-
-  // Salvar layout quando for alterado
-  $("#dashboard-layout").on("sortupdate", function(event, ui) {
-    saveLayout();
-  });
+      })
+      .catch(() => console.error('Erro ao salvar layout'));
+  };
 
   // Permitir redimensionar colunas
-  $(".col-md-4, .col-md-8, .col-md-6, .col-md-12").dblclick(function() {
-    var currentClass = $(this).attr('class');
-    
-    if (currentClass.includes('col-md-4')) {
-      $(this).removeClass('col-md-4').addClass('col-md-6');
-    } else if (currentClass.includes('col-md-6')) {
-      $(this).removeClass('col-md-6').addClass('col-md-8');
-    } else if (currentClass.includes('col-md-8')) {
-      $(this).removeClass('col-md-8').addClass('col-md-12');
-    } else if (currentClass.includes('col-md-12')) {
-      $(this).removeClass('col-md-12').addClass('col-md-4');
-    }
-    
-    // Salvar layout após redimensionar
-    saveLayout();
+  document.querySelectorAll('.col-md-4, .col-md-8, .col-md-6, .col-md-12').forEach((col) => {
+    col.addEventListener('dblclick', () => {
+      if (col.classList.contains('col-md-4')) {
+        col.classList.replace('col-md-4', 'col-md-6');
+      } else if (col.classList.contains('col-md-6')) {
+        col.classList.replace('col-md-6', 'col-md-8');
+      } else if (col.classList.contains('col-md-8')) {
+        col.classList.replace('col-md-8', 'col-md-12');
+      } else if (col.classList.contains('col-md-12')) {
+        col.classList.replace('col-md-12', 'col-md-4');
+      }
+      saveLayout();
+    });
   });
 });
 </script>

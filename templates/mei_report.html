@@ -806,29 +806,24 @@ jQuery.expr[':'].contains = function(a, i, m) {
 };
 
 // Alternar visibilidade dos filtros mensais/anuais
-document.addEventListener('DOMContentLoaded', function() {
+document.addEventListener('DOMContentLoaded', () => {
   const periodSelect = document.getElementById('period-select');
   const monthSelectContainer = document.getElementById('month-select-container');
   const monthlyFilters = document.querySelectorAll('.monthly-filter');
-  
-  periodSelect.addEventListener('change', function() {
-    if (this.value === 'year') {
-      monthSelectContainer.style.display = 'none';
-      monthlyFilters.forEach(filter => {
-        filter.style.display = 'none';
-      });
-    } else {
-      monthSelectContainer.style.display = '';
-      monthlyFilters.forEach(filter => {
-        filter.style.display = '';
-      });
-    }
+
+  // Alternar visibilidade dos filtros mensais/anuais
+  periodSelect.addEventListener('change', () => {
+    const isYear = periodSelect.value === 'year';
+    monthSelectContainer.style.display = isYear ? 'none' : '';
+    monthlyFilters.forEach(filter => {
+      filter.style.display = isYear ? 'none' : '';
+    });
   });
 
+  // Renderizar gráfico anual, se necessário
   {% if request.args.get('period') == 'year' %}
-  // Renderizar gráfico anual
-  var annualChartCtx = document.getElementById('annualChart').getContext('2d');
-  var annualChart = new Chart(annualChartCtx, {
+  const annualChartCtx = document.getElementById('annualChart').getContext('2d');
+  const annualChart = new Chart(annualChartCtx, {
     type: 'bar',
     data: {
       labels: [{% for month_data in annual_data %}'{{ month_data.month_name }}',{% endfor %}],
@@ -856,19 +851,17 @@ document.addEventListener('DOMContentLoaded', function() {
         y: {
           beginAtZero: true,
           ticks: {
-            callback: function(value) {
-              return 'R$ ' + value.toFixed(2);
-            }
+            callback: value => `R$ ${value.toFixed(2)}`
           }
         }
       },
       plugins: {
         tooltip: {
           callbacks: {
-            label: function(context) {
-              var label = context.dataset.label || '';
-              var value = context.raw || 0;
-              return label + ': R$ ' + value.toFixed(2);
+            label: context => {
+              const label = context.dataset.label || '';
+              const value = context.raw || 0;
+              return `${label}: R$ ${value.toFixed(2)}`;
             }
           }
         }
