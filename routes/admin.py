@@ -102,18 +102,27 @@ def reset_user_data(user_id):
 @login_required
 @admin_required
 def access_logs():
-  user_id = request.args.get('user_id', type=int)
-  
-  # Obter todos os usuários para exibir nomes na tabela
-  users = User.query.all()
-  
-  if user_id:
-      logs = user_service.get_user_access_logs(user_id)
-      user = user_service.get_user_by_id(user_id)
-      return render_template('admin/access_logs.html', logs=logs, filtered_user=user, users=users)
-  else:
-      logs = user_service.get_user_access_logs()
-      return render_template('admin/access_logs.html', logs=logs, users=users)
+    user_id = request.args.get('user_id', type=int)
+    page = request.args.get('page', 1, type=int)
+    per_page = 20  # Número de logs por página
+    
+    # Obter todos os usuários para exibir nomes na tabela
+    users = User.query.all()
+    
+    if user_id:
+        pagination = user_service.get_user_access_logs(user_id=user_id, page=page, per_page=per_page)
+        user = user_service.get_user_by_id(user_id)
+        return render_template('admin/access_logs.html', 
+                              pagination=pagination, 
+                              logs=pagination.items, 
+                              filtered_user=user, 
+                              users=users)
+    else:
+        pagination = user_service.get_user_access_logs(page=page, per_page=per_page)
+        return render_template('admin/access_logs.html', 
+                              pagination=pagination, 
+                              logs=pagination.items, 
+                              users=users)
 
 @admin_bp.route('/config', methods=['GET', 'POST'])
 @login_required
