@@ -93,7 +93,7 @@
           </a>
           <ul class="dropdown-menu dropdown-menu-lg dropdown-menu-right">
             <!-- User image -->
-            <li class="user-header bg-primary">
+            <li class="user-header bg-purple">
               <img
                 src="{{ url_for('static', filename='uploads/' + current_user.profile_pic) if current_user.is_authenticated else url_for('static', filename='uploads/default_profile.png') }}"
                 class="img-circle elevation-2" alt="Foto de Perfil">

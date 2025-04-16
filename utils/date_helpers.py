@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 import pytz
-import requests
 
 def get_month_name(month_number):
     """
@@ -48,24 +47,6 @@ def get_current_year():
     sp_tz = pytz.timezone('America/Sao_Paulo')
     return datetime.now(sp_tz).year
 
-def get_current_time_from_api():
-    """
-    Obtém a hora atual de uma API externa
-    """
-    try:
-        response = requests.get('http://worldtimeapi.org/api/timezone/America/Sao_Paulo', timeout=5)
-        if response.status_code == 200:
-            data = response.json()
-            dt = datetime.fromisoformat(data['datetime'].replace('Z', '+00:00'))
-            # Garantir que a data esteja no fuso horário de São Paulo
-            sp_tz = pytz.timezone('America/Sao_Paulo')
-            return dt.astimezone(sp_tz)
-    except Exception as e:
-        print(f"Erro ao obter hora da API: {e}")
-    
-    # Fallback para o horário do sistema
-    return datetime.now(pytz.timezone('America/Sao_Paulo'))
-
 def to_local_time(dt):
     """
     Converte um datetime UTC para o fuso horário de São Paulo
@@ -94,17 +75,6 @@ def format_local_datetime(dt, format_str='%d/%m/%Y %H:%M:%S'):
 def get_now_sp():
     """
     Retorna o datetime atual no fuso horário de São Paulo
-    Tenta obter de uma API externa primeiro, com fallback para o horário do sistema
     """
-    try:
-        api_time = get_current_time_from_api()
-        # Verificar se a API está retornando uma data futura (problema comum)
-        utc_now = datetime.now(pytz.UTC)
-        if (api_time - utc_now).total_seconds() > 86400:  # Se a diferença for maior que 24 horas
-            # Usar o horário do sistema como fallback
-            sp_tz = pytz.timezone('America/Sao_Paulo')
-            return datetime.now(sp_tz)
-        return api_time
-    except:
-        sp_tz = pytz.timezone('America/Sao_Paulo')
-        return datetime.now(sp_tz)
+    sp_tz = pytz.timezone('America/Sao_Paulo')
+    return datetime.now(sp_tz)
