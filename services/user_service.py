@@ -1,4 +1,4 @@
-from models import User, UserAccessLog
+from models import User, Transaction, BankAccount, Category, Invoice, Goal, UserAccessLog
 from extensions import db
 from utils.auth_helpers import custom_hash_password
 from utils.file_helpers import save_picture
@@ -247,7 +247,7 @@ def delete_user(user_id):
     """
     Exclui um usuário e todos os seus dados
     """
-    from models import User, Transaction, BankAccount, Category, Invoice, Alert, Goal, UserAccessLog
+    from models import User, Transaction, BankAccount, Category, Invoice, Goal, UserAccessLog
     
     user = User.query.get(user_id)
     if not user:
@@ -273,9 +273,7 @@ def delete_user(user_id):
     
     # Excluir todas as categorias do usuário
     Category.query.filter_by(user_id=user_id).delete()
-    
-    # Excluir todos os alertas do usuário
-    Alert.query.filter_by(user_id=user_id).delete()
+
     
     # Excluir todas as metas do usuário
     Goal.query.filter_by(user_id=user_id).delete()
