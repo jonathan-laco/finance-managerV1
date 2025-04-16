@@ -186,6 +186,15 @@
   </div>
 </div>
 
+<!-- Dica para melhor experiência -->
+<div class="alert alert-info alert-dismissible fade show" role="alert">
+  <strong>Dica:</strong> Para uma melhor experiência ao gerar relatórios, recomendamos usar o <strong>modo claro</strong>.
+  <a href="{{ url_for('settings.toggle_theme') }}" class="btn btn-sm btn-primary ml-2">Alterar modo</a>
+  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+    <span aria-hidden="true">&times;</span>
+  </button>
+</div>
+
 <!-- Botões de ação - Apenas visíveis na tela, não na impressão -->
 <div class="row mb-3 no-print">
   <div class="col-md-12 text-right">
