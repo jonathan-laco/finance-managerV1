@@ -84,16 +84,7 @@
       <!-- /.card-header -->
       <div class="card-body">
         <form method="get" action="{{ url_for('reports.index') }}" class="row">
-          <div class="col-md-2">
-            <div class="form-group">
-              <label>Período:</label>
-              <select class="form-control" name="period" id="period-select">
-                <option value="month" {% if request.args.get('period') != 'year' %}selected{% endif %}>Mensal</option>
-                <option value="year" {% if request.args.get('period') == 'year' %}selected{% endif %}>Anual</option>
-              </select>
-            </div>
-          </div>
-          <div class="col-md-2" id="month-select-container" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+          <div class="col-md-2" id="month-select-container">
             <div class="form-group">
               <label>Mês:</label>
               <select class="form-control" name="month">
@@ -115,7 +106,7 @@
               </select>
             </div>
           </div>
-          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+          <div class="col-md-2">
             <div class="form-group">
               <label>Conta:</label>
               <select class="form-control" name="account">
@@ -128,7 +119,7 @@
               </select>
             </div>
           </div>
-          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+          <div class="col-md-2">
             <div class="form-group">
               <label>Tipo:</label>
               <select class="form-control" name="type">
@@ -138,7 +129,7 @@
               </select>
             </div>
           </div>
-          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+          <div class="col-md-2">
             <div class="form-group">
               <label>Categoria:</label>
               <select class="form-control" name="category">
@@ -151,7 +142,7 @@
               </select>
             </div>
           </div>
-          <div class="col-md-2 monthly-filter" {% if request.args.get('period') == 'year' %}style="display:none"{% endif %}>
+          <div class="col-md-2">
             <div class="form-group">
               <label>Itens por página:</label>
               <select class="form-control" name="per_page">
@@ -171,26 +162,14 @@
   </div>
 </div>
 
-<!-- Dica para melhor experiência -->
-<div class="alert alert-info alert-dismissible fade show" role="alert">
-  <strong>Dica:</strong> Para uma melhor experiência ao gerar relatórios, recomendamos usar o <strong>modo claro</strong>.
-  <a href="{{ url_for('settings.toggle_theme') }}" class="btn btn-sm btn-primary ml-2">Alterar modo</a>
-  <button type="button" class="close" data-dismiss="alert" aria-label="Close">
-    <span aria-hidden="true">&times;</span>
-  </button>
-</div>
-
 <!-- Botões de ação - Apenas visíveis na tela, não na impressão -->
 <div class="row mb-3 no-print">
   <div class="col-md-12 text-right">
-    <button type="button" class="btn btn-primary" onclick="printReport()">
-      <i class="fas fa-print"></i> Imprimir Relatório (Tabela)
-    </button>
     <button type="button" class="btn btn-success" onclick="exportToExcel()">
       <i class="fas fa-file-excel"></i> Exportar para Excel
     </button>
-    <button type="button" class="btn btn-info" onclick="window.print()">
-      <i class="fas fa-print"></i> Imprimir Relatório Completo
+    <button type="button" class="btn btn-primary" onclick="window.print()">
+      <i class="fas fa-print"></i> Imprimir Relatório
     </button>
   </div>
 </div>
@@ -198,11 +177,7 @@
 <!-- Cabeçalho do Relatório - Visível apenas na impressão -->
 <div class="report-header print-only">
   <h1>Relatório Financeiro</h1>
-  {% if request.args.get('period') == 'year' %}
-  <p>Período: Ano {{ current_year }}</p>
-  {% else %}
   <p>Período: {{ ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'][current_month-1] }}/{{ current_year }}</p>
-  {% endif %}
   <p>Emitido em: {{ current_date }}</p>
 </div>
 
@@ -243,56 +218,6 @@
   </div>
 </div>
 
-{% if request.args.get('period') == 'year' %}
-<!-- Relatório Anual -->
-<div class="row">
-  <div class="col-12">
-    <div class="card">
-      <div class="card-header">
-        <h3 class="card-title">Relatório Anual - {{ current_year }}</h3>
-      </div>
-      <div class="card-body">
-        <div class="chart chart-print-container">
-          <canvas id="annualChart" style="min-height: 300px; height: 300px; max-height: 300px; max-width: 100%;"></canvas>
-        </div>
-        
-        <div class="table-responsive mt-4">
-          <table class="table table-bordered table-striped" id="annual-table">
-            <thead>
-              <tr>
-                <th>Mês</th>
-                <th>Receitas</th>
-                <th>Despesas</th>
-                <th>Saldo</th>
-              </tr>
-            </thead>
-            <tbody>
-              {% for month_data in annual_data %}
-              <tr>
-                <td>{{ month_data.month_name }}</td>
-                <td class="text-success">R$ {{ "%.2f"|format(month_data.income) }}</td>
-                <td class="text-danger">R$ {{ "%.2f"|format(month_data.expense) }}</td>
-                <td class="{% if month_data.income - month_data.expense >= 0 %}text-success{% else %}text-danger{% endif %}">
-                  R$ {{ "%.2f"|format(month_data.income - month_data.expense) }}
-                </td>
-              </tr>
-              {% endfor %}
-              <tr class="table-active font-weight-bold">
-                <td>Total Anual</td>
-                <td class="text-success">R$ {{ "%.2f"|format(annual_income) }}</td>
-                <td class="text-danger">R$ {{ "%.2f"|format(annual_expense) }}</td>
-                <td class="{% if annual_income - annual_expense >= 0 %}text-success{% else %}text-danger{% endif %}">
-                  R$ {{ "%.2f"|format(annual_income - annual_expense) }}
-                </td>
-              </tr>
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </div>
-  </div>
-</div>
-{% else %}
 <!-- Gráficos do Relatório Mensal -->
 <div class="row">
   <div class="col-md-6">
@@ -549,7 +474,6 @@
   </ul>
 </div>
 {% endif %}
-{% endif %}
 
 <!-- Rodapé do Relatório - Visível apenas na impressão -->
 <div class="report-footer print-only">
@@ -563,23 +487,16 @@
 // Função para exportar para Excel
 function exportToExcel() {
   // Implementação básica de exportação para Excel
-  let table;
-  
-  if (document.getElementById('annual-table')) {
-    table = document.getElementById('annual-table');
-  } else {
-    table = document.querySelector('.report-table');
-  }
-  
+  let table = document.querySelector('.report-table');
   let html = table.outerHTML;
-
+  
   // Converter para formato compatível com Excel
   let uri = 'data:application/vnd.ms-excel;base64,';
   let template = '<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Relatório</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--><meta http-equiv="content-type" content="text/plain; charset=UTF-8"/></head><body><table>{table}</table></body></html>';
-
+  
   let base64 = function(s) { return window.btoa(unescape(encodeURIComponent(s))) };
   let format = function(s, c) { return s.replace(/{(\w+)}/g, function(m, p) { return c[p]; }) };
-
+  
   let ctx = {table: html};
   let downloadLink = document.createElement("a");
   downloadLink.href = uri + base64(format(template, ctx));
@@ -588,235 +505,12 @@ function exportToExcel() {
   downloadLink.click();
   document.body.removeChild(downloadLink);
 }
-
-// Função para imprimir relatório
-function printReport() {
-  // Obter valores do servidor via variáveis JavaScript
-  const currentMonth = {{ current_month }};
-  const currentYear = {{ current_year }};
-  const monthNames = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
-  const isPeriodYear = {% if request.args.get('period') == 'year' %}true{% else %}false{% endif %};
-
-  // Criar conteúdo de impressão personalizado
-  const printContent = document.createElement('div');
-  printContent.classList.add('print-only');
-
-  // Adicionar título e subtítulo
-  const title = document.createElement('div');
-  title.style.textAlign = 'center';
-  title.style.fontSize = '18pt';
-  title.style.fontWeight = 'bold';
-  title.style.marginBottom = '10px';
-  title.textContent = 'Relatório Financeiro';
-  printContent.appendChild(title);
-
-  const period = document.createElement('div');
-  period.style.textAlign = 'center';
-  period.style.fontSize = '12pt';
-  period.style.marginBottom = '20px';
-  
-  if (isPeriodYear) {
-    period.textContent = `Período: Ano ${currentYear}`;
-  } else {
-    period.textContent = `Período: ${monthNames[currentMonth-1]}/${currentYear}`;
-  }
-  
-  printContent.appendChild(period);
-
-  // Adicionar informações do relatório
-  const info = document.createElement('div');
-  info.style.marginBottom = '20px';
-
-  const dateInfo = document.createElement('div');
-  dateInfo.textContent = `Data de geração: ${new Date().toLocaleString('pt-BR')}`;
-  info.appendChild(dateInfo);
-
-  printContent.appendChild(info);
-
-  // Adicionar resumo financeiro
-  const summary = document.createElement('div');
-  summary.style.marginBottom = '20px';
-  summary.style.display = 'flex';
-  summary.style.justifyContent = 'space-between';
-
-  const income = document.createElement('div');
-  income.style.flex = '1';
-  income.style.padding = '10px';
-  income.style.backgroundColor = '#d4edda';
-  income.style.borderRadius = '5px';
-  income.style.marginRight = '10px';
-  income.innerHTML = `<strong>Total de Receitas:</strong> R$ {{ "%.2f"|format(total_income) }}`;
-  summary.appendChild(income);
-
-  const expense = document.createElement('div');
-  expense.style.flex = '1';
-  expense.style.padding = '10px';
-  expense.style.backgroundColor = '#f8d7da';
-  expense.style.borderRadius = '5px';
-  expense.style.marginRight = '10px';
-  expense.innerHTML = `<strong>Total de Despesas:</strong> R$ {{ "%.2f"|format(total_expense) }}`;
-  summary.appendChild(expense);
-
-  const balance = document.createElement('div');
-  balance.style.flex = '1';
-  balance.style.padding = '10px';
-  balance.style.backgroundColor = '#d1ecf1';
-  balance.style.borderRadius = '5px';
-  balance.innerHTML = `<strong>Saldo do Período:</strong> R$ {{ "%.2f"|format(total_income - total_expense) }}`;
-  summary.appendChild(balance);
-
-  printContent.appendChild(summary);
-
-  // Usar a tabela existente para impressão
-  let tableToClone;
-  
-  if (isPeriodYear) {
-    // Para relatório anual, usar a tabela anual existente
-    tableToClone = document.getElementById('annual-table');
-  } else {
-    // Para relatório mensal, usar a tabela de transações
-    tableToClone = document.querySelector('.all-transactions .report-table');
-    if (!tableToClone) {
-      tableToClone = document.querySelector('.paginated-transactions .report-table');
-    }
-  }
-  
-  if (tableToClone) {
-    const tableClone = tableToClone.cloneNode(true);
-    
-    // Remover a coluna de ações se existir
-    const actionCells = tableClone.querySelectorAll('th:last-child, td:last-child');
-    if (actionCells.length > 0 && actionCells[0].classList.contains('no-print')) {
-      actionCells.forEach(cell => cell.remove());
-    }
-    
-    tableClone.style.width = '100%';
-    tableClone.style.borderCollapse = 'collapse';
-    tableClone.style.marginBottom = '20px';
-    
-    // Estilizar a tabela para impressão
-    const cells = tableClone.querySelectorAll('th, td');
-    cells.forEach(cell => {
-      cell.style.border = '1px solid #ddd';
-      cell.style.padding = '8px';
-      cell.style.textAlign = 'left';
-    });
-    
-    const headers = tableClone.querySelectorAll('th');
-    headers.forEach(header => {
-      header.style.backgroundColor = '#f4f4f4';
-      header.style.color = '#333';
-      header.style.fontWeight = 'bold';
-    });
-    
-    printContent.appendChild(tableClone);
-  }
-
-  // Adicionar rodapé
-  const footer = document.createElement('div');
-  footer.style.marginTop = '30px';
-  footer.style.fontSize = '10pt';
-  footer.style.textAlign = 'center';
-  footer.style.color = '#666';
-  footer.innerHTML = `Sistema de Gerenciamento Financeiro<br>Este relatório contém informações confidenciais e é destinado apenas para uso pessoal.`;
-  printContent.appendChild(footer);
-
-  // Substituir temporariamente o conteúdo para impressão
-  const originalContent = document.body.innerHTML;
-  document.body.innerHTML = printContent.outerHTML;
-
-  // Imprimir
-  window.print();
-
-  // Restaurar conteúdo original
-  document.body.innerHTML = originalContent;
-
-  // Recarregar scripts necessários
-  location.reload();
-}
-
-// Alternar visibilidade dos filtros mensais/anuais
-document.addEventListener('DOMContentLoaded', function() {
-  const periodSelect = document.getElementById('period-select');
-  const monthSelectContainer = document.getElementById('month-select-container');
-  const monthlyFilters = document.querySelectorAll('.monthly-filter');
-  
-  if (periodSelect) {
-    periodSelect.addEventListener('change', function() {
-      if (this.value === 'year') {
-        monthSelectContainer.style.display = 'none';
-        monthlyFilters.forEach(filter => {
-          filter.style.display = 'none';
-        });
-      } else {
-        monthSelectContainer.style.display = '';
-        monthlyFilters.forEach(filter => {
-          filter.style.display = '';
-        });
-      }
-    });
-  }
-
-  // Inicializar gráficos apenas se os elementos existirem
-  {% if request.args.get('period') == 'year' %}
-  // Renderizar gráfico anual
-  var annualChartElement = document.getElementById('annualChart');
-  if (annualChartElement) {
-    var annualChartCtx = annualChartElement.getContext('2d');
-    var annualChart = new Chart(annualChartCtx, {
-      type: 'bar',
-      data: {
-        labels: [{% for month_data in annual_data %}'{{ month_data.month_name }}',{% endfor %}],
-        datasets: [
-          {
-            label: 'Receitas',
-            backgroundColor: 'rgba(40, 167, 69, 0.7)',
-            borderColor: '#28a745',
-            borderWidth: 1,
-            data: [{% for month_data in annual_data %}{{ month_data.income }},{% endfor %}]
-          },
-          {
-            label: 'Despesas',
-            backgroundColor: 'rgba(220, 53, 69, 0.7)',
-            borderColor: '#dc3545',
-            borderWidth: 1,
-            data: [{% for month_data in annual_data %}{{ month_data.expense }},{% endfor %}]
-          }
-        ]
-      },
-      options: {
-        responsive: true,
-        maintainAspectRatio: false,
-        scales: {
-          y: {
-            beginAtZero: true,
-            ticks: {
-              callback: function(value) {
-                return 'R$ ' + value.toFixed(2);
-              }
-            }
-          }
-        },
-        plugins: {
-          tooltip: {
-            callbacks: {
-              label: function(context) {
-                var label = context.dataset.label || '';
-                var value = context.raw || 0;
-                return label + ': R$ ' + value.toFixed(2);
-              }
-            }
-          }
-        }
-      }
-    });
-  }
-  {% else %}
+document.addEventListener('DOMContentLoaded', () => {
   // Gráfico de Categorias de Despesas
-  var expenseCategoryElement = document.getElementById('expenseCategoryChart');
+  const expenseCategoryElement = document.getElementById('expenseCategoryChart');
   if (expenseCategoryElement) {
-    var expenseCategoryCtx = expenseCategoryElement.getContext('2d');
-    var expenseCategoryChart = new Chart(expenseCategoryCtx, {
+    const expenseCategoryCtx = expenseCategoryElement.getContext('2d');
+    new Chart(expenseCategoryCtx, {
       type: 'doughnut',
       data: {
         labels: [
@@ -846,10 +540,10 @@ document.addEventListener('DOMContentLoaded', function() {
           },
           tooltip: {
             callbacks: {
-              label: function(context) {
-                var label = context.label || '';
-                var value = context.raw || 0;
-                return label + ': R$ ' + value.toFixed(2);
+              label: (context) => {
+                const label = context.label || '';
+                const value = context.raw || 0;
+                return `${label}: R$ ${value.toFixed(2)}`;
               }
             }
           }
@@ -859,10 +553,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Gráfico de Evolução Diária
-  var dailyChartElement = document.getElementById('dailyChart');
+  const dailyChartElement = document.getElementById('dailyChart');
   if (dailyChartElement) {
-    var dailyCtx = dailyChartElement.getContext('2d');
-    var dailyChart = new Chart(dailyCtx, {
+    const dailyCtx = dailyChartElement.getContext('2d');
+    new Chart(dailyCtx, {
       type: 'line',
       data: {
         labels: [
@@ -904,19 +598,17 @@ document.addEventListener('DOMContentLoaded', function() {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
-                return 'R$ ' + value.toFixed(2);
-              }
+              callback: (value) => `R$ ${value.toFixed(2)}`
             }
           }
         },
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(context) {
-                var label = context.dataset.label || '';
-                var value = context.raw || 0;
-                return label + ': R$ ' + value.toFixed(2);
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = context.raw || 0;
+                return `${label}: R$ ${value.toFixed(2)}`;
               }
             }
           }
@@ -926,10 +618,10 @@ document.addEventListener('DOMContentLoaded', function() {
   }
 
   // Gráfico de Evolução Mensal
-  var monthlyChartElement = document.getElementById('monthlyChart');
+  const monthlyChartElement = document.getElementById('monthlyChart');
   if (monthlyChartElement) {
-    var monthlyCtx = monthlyChartElement.getContext('2d');
-    var monthlyChart = new Chart(monthlyCtx, {
+    const monthlyCtx = monthlyChartElement.getContext('2d');
+    new Chart(monthlyCtx, {
       type: 'line',
       data: {
         labels: [
@@ -971,19 +663,17 @@ document.addEventListener('DOMContentLoaded', function() {
           y: {
             beginAtZero: true,
             ticks: {
-              callback: function(value) {
-                return 'R$ ' + value.toFixed(2);
-              }
+              callback: (value) => `R$ ${value.toFixed(2)}`
             }
           }
         },
         plugins: {
           tooltip: {
             callbacks: {
-              label: function(context) {
-                var label = context.dataset.label || '';
-                var value = context.raw || 0;
-                return label + ': R$ ' + value.toFixed(2);
+              label: (context) => {
+                const label = context.dataset.label || '';
+                const value = context.raw || 0;
+                return `${label}: R$ ${value.toFixed(2)}`;
               }
             }
           }
@@ -991,7 +681,6 @@ document.addEventListener('DOMContentLoaded', function() {
       }
     });
   }
-  {% endif %}
 });
 </script>
 {% endblock %}
