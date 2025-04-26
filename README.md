@@ -175,7 +175,7 @@ gunicorn -w 4 -b 0.0.0.0:8080 run:app
 
 ---
 
-##Desenvolvido com ❤️ para transformar a maneira como você gerencia suas finanças. Experimente e veja como é fácil alcançar seus objetivos financeiros com o **Sistema Financeiro Pessoal e MEI**! 🌟
+Desenvolvido com ❤️ para transformar a maneira como você gerencia suas finanças. Experimente e veja como é fácil alcançar seus objetivos financeiros com o **Sistema Financeiro Pessoal e MEI**! 🌟
 
 **Desenvolvido por Jonathan Laco**
 
