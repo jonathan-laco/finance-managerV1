@@ -1,30 +1,71 @@
-from flask import Blueprint, render_template, request, redirect, url_for, flash, jsonify
+from flask import Blueprint, render_template, request, redirect, url_for, flash
 from flask_login import login_required, current_user
 from services import user_service, category_service, config_service
 from models import User
 from functools import wraps
+import os
+from datetime import datetime
+from dotenv import load_dotenv
+import requests
+
+# Carregar variáveis do .env
+load_dotenv()
 
 admin_bp = Blueprint('admin', __name__, url_prefix='/admin')
 
 # Decorator para verificar se o usuário é administrador
 def admin_required(f):
-  @wraps(f)
-  def decorated_function(*args, **kwargs):
-      if not current_user.is_admin:
-          flash('Acesso negado. Você precisa ser um administrador para acessar esta página.', 'danger')
-          return redirect(url_for('dashboard.index'))
-      return f(*args, **kwargs)
-  return decorated_function
+    @wraps(f)
+    def decorated_function(*args, **kwargs):
+        if not current_user.is_admin:
+            flash('Acesso negado. Você precisa ser um administrador para acessar esta página.', 'danger')
+            return redirect(url_for('dashboard.index'))
+        return f(*args, **kwargs)
+    return decorated_function
 
 @admin_bp.route('/')
 @login_required
 @admin_required
 def dashboard():
-  # Obter estatísticas de usuários
-  user_stats = user_service.get_user_statistics()
-  
-  return render_template('admin/dashboard.html', 
-                        user_stats=user_stats)
+    # Obter estatísticas de usuários
+    user_stats = user_service.get_user_statistics()
+    return render_template('admin/dashboard.html', user_stats=user_stats)
+
+@admin_bp.route('/backup', methods=['POST'])
+@login_required
+@admin_required
+def backup_database():
+    try:
+        # Caminho do banco de dados
+        db_path = os.path.join('instance', 'finance.db')
+
+        # Verificar se o banco de dados existe
+        if not os.path.exists(db_path):
+            flash('Banco de dados não encontrado.', 'danger')
+            return redirect(url_for('admin.dashboard'))
+
+        # Enviar o backup para o Discord
+        webhook_url = os.getenv('DISCORD_WEBHOOK_URL')
+        if not webhook_url:
+            flash('Webhook do Discord não configurado.', 'danger')
+            return redirect(url_for('admin.dashboard'))
+
+        with open(db_path, 'rb') as db_file:
+            response = requests.post(
+                webhook_url,
+                files={'file': ('finance.db', db_file)},
+                data={'content': f"Olá, backup recebido com sucesso na data e hora {datetime.now().strftime('%d/%m/%Y %H:%M:%S')}."}
+            )
+
+        if response.status_code == 200:
+            flash('Backup enviado com sucesso!', 'success')
+        else:
+            flash('Falha ao enviar o backup para o Discord.', 'danger')
+
+    except Exception as e:
+        flash(f'Erro ao enviar o backup: {e}', 'danger')
+
+    return redirect(url_for('admin.dashboard'))
 
 @admin_bp.route('/users')
 @login_required

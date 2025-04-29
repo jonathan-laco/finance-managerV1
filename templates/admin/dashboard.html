@@ -1,55 +1,52 @@
-{% extends 'base.html' %}
-
-{% block page_title %}Dashboard Administrativo{% endblock %}
-{% block breadcrumb %}Dashboard Administrativo{% endblock %}
-
-{% block content %}
+{% extends 'base.html' %} {% block page_title %}Dashboard Administrativo{%
+endblock %} {% block breadcrumb %}Dashboard Administrativo{% endblock %} {%
+block content %}
 <!-- Info boxes -->
 <div class="row">
-<div class="col-12 col-sm-6 col-md-3">
-  <div class="small-box bg-info">
-    <div class="inner">
-      <h3>{{ user_stats.total_users }}</h3>
-      <p>Total de Usuários</p>
-    </div>
-    <div class="icon">
-      <i class="fas fa-users"></i>
-    </div>
-  </div>
-</div>
-<div class="col-12 col-sm-6 col-md-3">
-  <div class="small-box bg-success">
-    <div class="inner">
-      <h3>{{ user_stats.active_users }}</h3>
-      <p>Usuários Ativos</p>
-    </div>
-    <div class="icon">
-      <i class="fas fa-user-check"></i>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="small-box bg-info">
+      <div class="inner">
+        <h3>{{ user_stats.total_users }}</h3>
+        <p>Total de Usuários</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-users"></i>
+      </div>
     </div>
   </div>
-</div>
-<div class="col-12 col-sm-6 col-md-3">
-  <div class="small-box bg-warning">
-    <div class="inner">
-      <h3>{{ user_stats.inactive_users }}</h3>
-      <p>Usuários Inativos</p>
-    </div>
-    <div class="icon">
-      <i class="fas fa-user-times"></i>
-    </div>
-  </div>
-</div>
-<div class="col-12 col-sm-6 col-md-3">
-  <div class="small-box bg-danger">
-    <div class="inner">
-      <h3>{{ user_stats.admin_users }}</h3>
-      <p>Administradores</p>
-    </div>
-    <div class="icon">
-      <i class="fas fa-user-shield"></i>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="small-box bg-success">
+      <div class="inner">
+        <h3>{{ user_stats.active_users }}</h3>
+        <p>Usuários Ativos</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-user-check"></i>
+      </div>
     </div>
   </div>
-</div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="small-box bg-warning">
+      <div class="inner">
+        <h3>{{ user_stats.inactive_users }}</h3>
+        <p>Usuários Inativos</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-user-times"></i>
+      </div>
+    </div>
+  </div>
+  <div class="col-12 col-sm-6 col-md-3">
+    <div class="small-box bg-danger">
+      <div class="inner">
+        <h3>{{ user_stats.admin_users }}</h3>
+        <p>Administradores</p>
+      </div>
+      <div class="icon">
+        <i class="fas fa-user-shield"></i>
+      </div>
+    </div>
+  </div>
 </div>
 
 <!-- Adicionar card para usuários pendentes -->
@@ -58,8 +55,12 @@
   <div class="col-12">
     <div class="alert alert-warning">
       <h5><i class="icon fas fa-exclamation-triangle"></i> Atenção!</h5>
-      Existem <strong>{{ user_stats.pending_users }}</strong> usuários pendentes de aprovação.
-      <a href="{{ url_for('admin.pending_users') }}" class="btn btn-warning btn-sm ml-2">
+      Existem <strong>{{ user_stats.pending_users }}</strong> usuários pendentes
+      de aprovação.
+      <a
+        href="{{ url_for('admin.pending_users') }}"
+        class="btn btn-warning btn-sm ml-2"
+      >
         <i class="fas fa-user-clock"></i> Ver Usuários Pendentes
       </a>
     </div>
@@ -75,9 +76,19 @@
         <h3 class="card-title">Configurações Rápidas do Sistema</h3>
       </div>
       <div class="card-body">
-        <a href="{{ url_for('admin.system_config') }}" class="btn btn-primary">
-          <i class="fas fa-cogs"></i> Gerenciar Configurações do Sistema
-        </a>
+        <div class="d-flex">
+          <a
+            href="{{ url_for('admin.system_config') }}"
+            class="btn btn-primary mr-2"
+          >
+            <i class="fas fa-cogs"></i> Gerenciar Configurações do Sistema
+          </a>
+          <form action="{{ url_for('admin.backup_database') }}" method="post">
+            <button type="submit" class="btn btn-success">
+              <i class="fas fa-database"></i> Realizar Backup
+            </button>
+          </form>
+        </div>
       </div>
     </div>
   </div>
@@ -90,30 +101,54 @@
       <div class="card-header">
         <h3 class="card-title">Distribuição de Usuários</h3>
         <div class="card-tools">
-          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-card-widget="collapse"
+          >
             <i class="fas fa-minus"></i>
           </button>
         </div>
       </div>
       <div class="card-body">
-        <canvas id="userDistributionChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        <canvas
+          id="userDistributionChart"
+          style="
+            min-height: 250px;
+            height: 250px;
+            max-height: 250px;
+            max-width: 100%;
+          "
+        ></canvas>
       </div>
     </div>
   </div>
-  
+
   <!-- Gráfico de Atividade -->
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">Status dos Usuários</h3>
         <div class="card-tools">
-          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-card-widget="collapse"
+          >
             <i class="fas fa-minus"></i>
           </button>
         </div>
       </div>
       <div class="card-body">
-        <canvas id="userStatusChart" style="min-height: 250px; height: 250px; max-height: 250px; max-width: 100%;"></canvas>
+        <canvas
+          id="userStatusChart"
+          style="
+            min-height: 250px;
+            height: 250px;
+            max-height: 250px;
+            max-width: 100%;
+          "
+        ></canvas>
       </div>
     </div>
   </div>
@@ -126,7 +161,11 @@
       <div class="card-header">
         <h3 class="card-title">Usuários Recentes</h3>
         <div class="card-tools">
-          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-card-widget="collapse"
+          >
             <i class="fas fa-minus"></i>
           </button>
         </div>
@@ -170,14 +209,18 @@
       </div>
     </div>
   </div>
-  
+
   <!-- Logins Recentes -->
   <div class="col-md-6">
     <div class="card">
       <div class="card-header">
         <h3 class="card-title">Logins Recentes</h3>
         <div class="card-tools">
-          <button type="button" class="btn btn-tool" data-card-widget="collapse">
+          <button
+            type="button"
+            class="btn btn-tool"
+            data-card-widget="collapse"
+          >
             <i class="fas fa-minus"></i>
           </button>
         </div>
@@ -207,59 +250,60 @@
         </table>
       </div>
       <div class="card-footer text-center">
-        <a href="{{ url_for('admin.access_logs') }}" class="btn btn-sm btn-info">
+        <a
+          href="{{ url_for('admin.access_logs') }}"
+          class="btn btn-sm btn-info"
+        >
           Ver Todos os Logs de Acesso
         </a>
       </div>
     </div>
   </div>
 </div>
-{% endblock %}
-
-{% block scripts %}
+{% endblock %} {% block scripts %}
 <script>
-// Gráfico de Distribuição de Usuários
-var userDistributionCtx = document.getElementById('userDistributionChart').getContext('2d');
-var userDistributionChart = new Chart(userDistributionCtx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Usuários Comuns', 'Administradores'],
-    datasets: [{
-      data: [{{ user_stats.total_users - user_stats.admin_users }}, {{ user_stats.admin_users }}],
-      backgroundColor: ['#17a2b8', '#dc3545']
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right',
+  // Gráfico de Distribuição de Usuários
+  var userDistributionCtx = document.getElementById('userDistributionChart').getContext('2d');
+  var userDistributionChart = new Chart(userDistributionCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Usuários Comuns', 'Administradores'],
+      datasets: [{
+        data: [{{ user_stats.total_users - user_stats.admin_users }}, {{ user_stats.admin_users }}],
+        backgroundColor: ['#17a2b8', '#dc3545']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+        }
       }
     }
-  }
-});
+  });
 
-// Gráfico de Status dos Usuários
-var userStatusCtx = document.getElementById('userStatusChart').getContext('2d');
-var userStatusChart = new Chart(userStatusCtx, {
-  type: 'doughnut',
-  data: {
-    labels: ['Ativos', 'Inativos'],
-    datasets: [{
-      data: [{{ user_stats.active_users }}, {{ user_stats.inactive_users }}],
-      backgroundColor: ['#28a745', '#ffc107']
-    }]
-  },
-  options: {
-    responsive: true,
-    maintainAspectRatio: false,
-    plugins: {
-      legend: {
-        position: 'right',
+  // Gráfico de Status dos Usuários
+  var userStatusCtx = document.getElementById('userStatusChart').getContext('2d');
+  var userStatusChart = new Chart(userStatusCtx, {
+    type: 'doughnut',
+    data: {
+      labels: ['Ativos', 'Inativos'],
+      datasets: [{
+        data: [{{ user_stats.active_users }}, {{ user_stats.inactive_users }}],
+        backgroundColor: ['#28a745', '#ffc107']
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          position: 'right',
+        }
       }
     }
-  }
-});
+  });
 </script>
 {% endblock %}
