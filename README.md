@@ -25,6 +25,7 @@ Este sistema foi projetado com **carinho e atenção aos detalhes**, para que vo
 - Configure o sistema: habilite ou desabilite cadastros MEI e permissões de registro.
 - Monitore logs de acesso para maior segurança.
 - Gere relatórios administrativos detalhados.
+- **Realize backups do banco de dados diretamente no Discord(ADMIN)**, evitando perda de dados em problemas críticos. Para mais informações sobre como configurar webhooks no Discord, consulte a [documentação oficial de Webhooks do Discord](https://discord.com/developers/docs/resources/webhook).
 
 ### 🏦 Usuário Comum
 
