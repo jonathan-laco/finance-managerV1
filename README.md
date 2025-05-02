@@ -5,7 +5,7 @@ Bem-vindo ao **Sistema Financeiro Pessoal e MEI**! Este projeto foi cuidadosamen
 ---
 ## ✨ Acesse o sistema de testes
 
-👉 [Clique aqui para acessar o painel de administração](https://sistema-financeiro-teste.onrender.com/)  
+👉 [Clique aqui para acessar o sistema financeiro](https://sistema-financeiro-teste.onrender.com/)  
 *Ambiente disponível apenas para fins de teste.*
 
 ⚠️ **Avisos importantes:**
