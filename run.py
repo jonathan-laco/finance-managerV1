@@ -9,4 +9,5 @@ if __name__ == '__main__':
             print(f"Erro ao executar seed: {e}")
             print("Continuando a execução da aplicação...")
     
-    app.run(debug=True)
+    app.run(debug=True, host='0.0.0.0', port=5000)
+
