@@ -3,6 +3,30 @@
 Bem-vindo ao **Sistema Financeiro Pessoal e MEI**! Este projeto foi cuidadosamente desenvolvido para resolver um problema real: **a dificuldade de gerenciar finanças pessoais e empresariais de forma simples e eficiente**. Seja você um usuário comum ou um Microempreendedor Individual (MEI), este sistema foi pensado para **facilitar sua vida financeira** e trazer mais **organização e clareza** ao seu dia a dia. 🌟
 
 ---
+## ✨ Acesse o sistema de testes
+
+👉 [Clique aqui para acessar o painel de administração](https://sistema-financeiro-teste.onrender.com/)  
+*Ambiente disponível apenas para fins de teste.*
+
+⚠️ **Avisos importantes:**
+
+- Pedimos por gentileza que **não altere a senha do usuário `admin`**.  
+  Ela foi deixada aberta intencionalmente para que todos possam explorar as funções administrativas livremente.
+
+  > ✨ **Tenha consciência**: assim como você acessou, outras pessoas também gostariam de testar, observar e aprender com o sistema.
+
+- ⚙️ A função de **backup** **não está disponível nesta versão hospedada no Render**.  
+  No entanto, o recurso **está implementado corretamente no código-fonte** e pode ser utilizado em outras implantações.
+
+- ⏳ **A versão hospedada no Render pode apresentar lentidão**, devido ao uso da **versão gratuita** do serviço.  
+  Este projeto **não é destinado para uso real** e foi feito **exclusivamente para testes**.
+
+- 📑 **Importante**: Evite fornecer **documentos reais** (como CNPJ, documentos de notas fiscais e senhas) nas contas MEI neste projeto de testes.  
+  O sistema não deve ser usado como um projeto real ou para armazenar dados sensíveis.
+
+- 🔄 **Aviso sobre o banco de dados**: Caso o seu usuário não exista mais ao acessar, é porque o banco de dados foi **resetado periodicamente** para não manter informações de longo prazo no sistema de testes.
+
+![image](https://github.com/user-attachments/assets/698c7baa-ef8f-4098-94dd-bd1aede4f084)
 
 ## 🎯 Por Que Usar Este Sistema?
 
