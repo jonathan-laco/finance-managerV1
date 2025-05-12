@@ -1,4 +1,4 @@
- /* Layout fixo com conteúdo rolável */
+/* Layout fixo com conteúdo rolável */
  html,
  body {
      height: 100%;
@@ -183,7 +183,12 @@
 
  /* Animações de transição de página */
  .page-transition {
-     transition: opacity 0.3s ease-in-out;
+     opacity: 0;
+     transition: opacity 0.5s ease-in-out;
+ }
+
+ .page-transition-active {
+     opacity: 1;
  }
 
  .page-transition-enter {
