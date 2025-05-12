@@ -69,10 +69,10 @@
          opacity: 1;
      }
  }
-
- .card-draggable .card-header {
+/* remover movimentação  */
+ /* .card-draggable .card-header {
      cursor: move;
- }
+ } */
 
  .card-placeholder {
      border: 2px dashed #ccc;
