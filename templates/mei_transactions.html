@@ -182,6 +182,46 @@
           </table>
         </div>
 
+        <!-- Modal de Exclusão -->
+        {% for transaction in transactions %}
+        <div class="modal fade" id="deleteModal{{ transaction.id }}" tabindex="-1" role="dialog" aria-labelledby="deleteModalLabel{{ transaction.id }}" aria-hidden="true">
+          <div class="modal-dialog" role="document">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h5 class="modal-title" id="deleteModalLabel{{ transaction.id }}">Confirmar Exclusão</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                  <span aria-hidden="true">&times;</span>
+                </button>
+              </div>
+              <div class="modal-body">
+                <p>Tem certeza que deseja excluir esta transação?</p>
+                <p><strong>Descrição:</strong> {{ transaction.description }}</p>
+                <p><strong>Valor:</strong> R$ {{ "%.2f"|format(transaction.amount) }}</p>
+                <p><strong>Data:</strong> {{ transaction.date.strftime('%d/%m/%Y') }}</p>
+                
+                {% if transaction.status == 'confirmado' %}
+                <div class="alert alert-warning">
+                  <i class="fas fa-exclamation-triangle"></i> Esta é uma transação confirmada. Excluí-la irá ajustar o saldo da conta.
+                </div>
+                {% endif %}
+                
+                {% if transaction.has_invoice %}
+                <div class="alert alert-info">
+                  <i class="fas fa-file-invoice"></i> Esta transação possui uma nota fiscal anexada que também será excluída.
+                </div>
+                {% endif %}
+              </div>
+              <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancelar</button>
+                <form action="{{ url_for('transactions.delete', transaction_id=transaction.id) }}" method="POST">
+                  <button type="submit" class="btn btn-danger">Excluir</button>
+                </form>
+              </div>
+            </div>
+          </div>
+        </div>
+        {% endfor %}
+
         <!-- Paginação -->
         {% if pagination.pages > 1 %}
         <div class="d-flex justify-content-center mt-4">
