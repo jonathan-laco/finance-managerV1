@@ -1,44 +1,6 @@
 {% extends 'base.html' %} {% block page_title %}Dashboard Administrativo{%
 endblock %} {% block breadcrumb %}Dashboard Administrativo{% endblock %} {%
 block content %}
-<style>
-  /* Estilo para a tabela de usuários recentes */
-  .table-responsive {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-  }
-  
-  .table {
-    width: 100%;
-    margin-bottom: 1rem;
-    color: #212529;
-    table-layout: fixed;
-  }
-  
-  .table th,
-  .table td {
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    max-width: 200px;
-    vertical-align: middle;
-  }
-  
-  /* Ajuste para a coluna de email */
-  .table td:nth-child(2) {
-    max-width: 150px;
-  }
-  
-  /* Ajuste para a coluna de data */
-  .table td:nth-child(3) {
-    max-width: 120px;
-  }
-  
-  /* Ajuste para a coluna de status */
-  .table td:last-child {
-    max-width: 80px;
-  }
-</style>
 <!-- Info boxes -->
 <div class="row">
   <div class="col-12 col-sm-6 col-md-3">
@@ -209,14 +171,8 @@ block content %}
         </div>
       </div>
       <div class="card-body p-0">
-        <div class="table-responsive" style="max-height: 300px; overflow-y: auto;">
-          <table class="table table-striped" style="table-layout: fixed; width: 100%; margin-bottom: 0;">
-            <colgroup>
-              <col style="width: 25%;">
-              <col style="width: 35%;">
-              <col style="width: 25%;">
-              <col style="width: 15%;">
-            </colgroup>
+        <div style="overflow-x: auto;">
+          <table class="table table-striped" style="min-width: 600px;">
             <thead>
               <tr>
                 <th>Usuário</th>
@@ -225,27 +181,28 @@ block content %}
                 <th>Status</th>
               </tr>
             </thead>
-          <tbody>
-            {% for user in user_stats.recent_users %}
-            <tr>
-              <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.username }}</td>
-              <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.email }}</td>
-              <td style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
-              <td>
-                {% if user.is_active %}
-                <span class="badge bg-success">Ativo</span>
-                {% else %}
-                <span class="badge bg-danger">Inativo</span>
-                {% endif %}
-              </td>
-            </tr>
-            {% else %}
-            <tr>
-              <td colspan="4" class="text-center">Nenhum usuário encontrado</td>
-            </tr>
-            {% endfor %}
-          </tbody>
-        </table>
+            <tbody>
+              {% for user in user_stats.recent_users %}
+              <tr>
+                <td style="white-space: nowrap;">{{ user.username }}</td>
+                <td style="white-space: nowrap;">{{ user.email }}</td>
+                <td style="white-space: nowrap;">{{ user.created_at.strftime('%d/%m/%Y %H:%M') }}</td>
+                <td>
+                  {% if user.is_active %}
+                  <span class="badge bg-success">Ativo</span>
+                  {% else %}
+                  <span class="badge bg-danger">Inativo</span>
+                  {% endif %}
+                </td>
+              </tr>
+              {% else %}
+              <tr>
+                <td colspan="4" class="text-center">Nenhum usuário encontrado</td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
       </div>
       <div class="card-footer text-center">
         <a href="{{ url_for('admin.users') }}" class="btn btn-sm btn-info">
